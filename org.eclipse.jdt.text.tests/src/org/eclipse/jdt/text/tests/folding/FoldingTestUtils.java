@@ -62,6 +62,21 @@ public final class FoldingTestUtils {
 		assertEquals(regionsCount, regions.size(), String.format("Expected %d regions but saw %d.", regionsCount, regions.size()));
 	}
 
+	public static void assertContainsRegionUsingContentOfStartLine(List<IRegion> projectionRanges, String input, String contentOfStartLine) {
+		List<String> firstLines = new ArrayList<>(projectionRanges.size());
+
+		for (IRegion region : projectionRanges) {
+			String content= input.substring(region.getOffset(), region.getOffset() + region.getLength());
+			String firstLine = content.substring(0, content.indexOf("\n")).trim();
+			if (contentOfStartLine.equals(firstLine)) {
+				return;
+			}
+			firstLines.add(firstLine);
+		}
+
+		fail("Couldn't find any region starting with \"" + contentOfStartLine + "\". These are the first lines of all regions: " + firstLines);
+	}
+
 	public static void assertContainsRegionUsingStartAndEndLine(List<IRegion> projectionRanges, String input, int startLine, int endLine) {
 		assertTrue(startLine <= endLine, "start line must be smaller or equal to end line");
 		int startLineBegin= findLineStartIndex(input, startLine);

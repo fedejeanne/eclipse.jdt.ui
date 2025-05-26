@@ -162,7 +162,8 @@ public class CustomFoldingRegionTest {
 				""";
 		List<IRegion> projectionRanges= getProjectionRangesOfFile(str);
 		assertEquals(1, projectionRanges.size());
-		FoldingTestUtils.assertContainsRegionUsingStartAndEndLine(projectionRanges, str, 2, 3);
+
+		FoldingTestUtils.assertContainsRegionUsingContentOfStartLine(projectionRanges, str, "void a(){");
 	}
 
 	@Test
@@ -179,8 +180,8 @@ public class CustomFoldingRegionTest {
 				""";
 		List<IRegion> projectionRanges= getProjectionRangesOfFile(str);
 		assertEquals(2, projectionRanges.size());
-		FoldingTestUtils.assertContainsRegionUsingStartAndEndLine(projectionRanges, str, 2, 5);
-		FoldingTestUtils.assertContainsRegionUsingStartAndEndLine(projectionRanges, str, 3, 5);
+		FoldingTestUtils.assertContainsRegionUsingStartAndEndLine(projectionRanges, str, 3, 5); //region
+		FoldingTestUtils.assertContainsRegionUsingContentOfStartLine(projectionRanges, str, "void a(){");
 	}
 
 	@Test
@@ -266,7 +267,7 @@ public class CustomFoldingRegionTest {
 		}
 		FoldingTestUtils.assertContainsRegionUsingStartAndEndLine(projectionRanges, str, 4, 11);//outside method
 		FoldingTestUtils.assertContainsRegionUsingStartAndEndLine(projectionRanges, str, 7, 9);//inside method
-		FoldingTestUtils.assertContainsRegionUsingStartAndEndLine(projectionRanges, str, 5, 9);//void a()
+		FoldingTestUtils.assertContainsRegionUsingContentOfStartLine(projectionRanges, str, "void a(){");
 	}
 
 	@Test
@@ -284,7 +285,7 @@ public class CustomFoldingRegionTest {
 				""";
 		List<IRegion> projectionRanges= getProjectionRangesOfFile(str);
 		assertEquals(1, projectionRanges.size());
-		FoldingTestUtils.assertContainsRegionUsingStartAndEndLine(projectionRanges, str, 3, 4);//void a()
+		FoldingTestUtils.assertContainsRegionUsingContentOfStartLine(projectionRanges, str, "void a(){");
 	}
 
 	@Test
@@ -306,14 +307,14 @@ public class CustomFoldingRegionTest {
 		List<IRegion> projectionRanges= getProjectionRangesOfFile(str);
 		if(extendedFoldingActive) {
 			assertEquals(5, projectionRanges.size());
-			FoldingTestUtils.assertContainsRegionUsingStartAndEndLine(projectionRanges, str, 3, 9);//void a()
+			FoldingTestUtils.assertContainsRegionUsingContentOfStartLine(projectionRanges, str, "void a(){");
 			FoldingTestUtils.assertContainsRegionUsingStartAndEndLine(projectionRanges, str, 4, 5);// multiline (comment)
 			FoldingTestUtils.assertContainsRegionUsingStartAndEndLine(projectionRanges, str, 4, 9);// multiline (folding region)
 			FoldingTestUtils.assertContainsRegionUsingStartAndEndLine(projectionRanges, str, 6, 7);// javadoc
 			FoldingTestUtils.assertContainsRegionUsingStartAndEndLine(projectionRanges, str, 8, 9);// multiline (last comment)
 		} else {
 			assertEquals(3, projectionRanges.size());
-			FoldingTestUtils.assertContainsRegionUsingStartAndEndLine(projectionRanges, str, 3, 9);//void a()
+			FoldingTestUtils.assertContainsRegionUsingContentOfStartLine(projectionRanges, str, "void a(){");
 			FoldingTestUtils.assertContainsRegionUsingStartAndEndLine(projectionRanges, str, 4, 9);// multiline
 			FoldingTestUtils.assertContainsRegionUsingStartAndEndLine(projectionRanges, str, 6, 7);// javadoc
 		}
@@ -338,9 +339,9 @@ public class CustomFoldingRegionTest {
 				""";
 		List<IRegion> projectionRanges= getProjectionRangesOfFile(str);
 		assertEquals(3, projectionRanges.size());
-		FoldingTestUtils.assertContainsRegionUsingStartAndEndLine(projectionRanges, str, 3, 10);//void a()
+		FoldingTestUtils.assertContainsRegionUsingContentOfStartLine(projectionRanges, str, "void a(){");
 		FoldingTestUtils.assertContainsRegionUsingStartAndEndLine(projectionRanges, str, 4, 7);//region
-		FoldingTestUtils.assertContainsRegionUsingStartAndEndLine(projectionRanges, str, 8, 9);//class Inner
+		FoldingTestUtils.assertContainsRegionUsingContentOfStartLine(projectionRanges, str, "class Inner{");
 	}
 
 	@Test
@@ -366,12 +367,8 @@ public class CustomFoldingRegionTest {
 				""";
 		List<IRegion> projectionRanges= getProjectionRangesOfFile(str);
 		assertEquals(3, projectionRanges.size());
-		if (extendedFoldingActive) {
-			FoldingTestUtils.assertContainsRegionUsingStartAndEndLine(projectionRanges, str, 4, 8);//class A
-		} else {
-			FoldingTestUtils.assertContainsRegionUsingStartAndEndLine(projectionRanges, str, 4, 9);//class A
-		}
-		FoldingTestUtils.assertContainsRegionUsingStartAndEndLine(projectionRanges, str, 5, 6);//void helloWorld()
+		FoldingTestUtils.assertContainsRegionUsingContentOfStartLine(projectionRanges, str, "public class A {");
+		FoldingTestUtils.assertContainsRegionUsingContentOfStartLine(projectionRanges, str, "public void helloWorld() {");
 	}
 
 	@Test
@@ -392,7 +389,7 @@ public class CustomFoldingRegionTest {
 		List<IRegion> projectionRanges= getProjectionRangesOfFile(str);
 		assertEquals(2, projectionRanges.size());
 		FoldingTestUtils.assertContainsRegionUsingStartAndEndLine(projectionRanges, str, 3, 9);//region
-		FoldingTestUtils.assertContainsRegionUsingStartAndEndLine(projectionRanges, str, 6, 7);//void b()
+		FoldingTestUtils.assertContainsRegionUsingContentOfStartLine(projectionRanges, str, "void b(){");
 	}
 
 	@Test
@@ -430,7 +427,7 @@ public class CustomFoldingRegionTest {
 				""";
 		List<IRegion> projectionRanges= getProjectionRangesOfFile(str);
 		assertEquals(2, projectionRanges.size());
-		FoldingTestUtils.assertContainsRegionUsingStartAndEndLine(projectionRanges, str, 2, 5);//void a()
+		FoldingTestUtils.assertContainsRegionUsingContentOfStartLine(projectionRanges, str, "void a(){");
 		FoldingTestUtils.assertContainsRegionUsingStartAndEndLine(projectionRanges, str, 3, 5);//region 1
 	}
 
@@ -456,9 +453,9 @@ public class CustomFoldingRegionTest {
 				""";
 		List<IRegion> projectionRanges= getProjectionRangesOfFile(str);
 		assertEquals(3, projectionRanges.size());
-		FoldingTestUtils.assertContainsRegionUsingStartAndEndLine(projectionRanges, str, 2, 12);//void a()
-		FoldingTestUtils.assertContainsRegionUsingStartAndEndLine(projectionRanges, str, 4, 6);//void a()
-		FoldingTestUtils.assertContainsRegionUsingStartAndEndLine(projectionRanges, str, 10, 11);//void a()
+		FoldingTestUtils.assertContainsRegionUsingContentOfStartLine(projectionRanges, str, "void a() {");
+		FoldingTestUtils.assertContainsRegionUsingContentOfStartLine(projectionRanges, str, "for (int i = 0; i < 10; i++) {");
+		FoldingTestUtils.assertContainsRegionUsingContentOfStartLine(projectionRanges, str, "while (b) {");
 	}
 
 	@Test
