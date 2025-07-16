@@ -14,11 +14,20 @@
 package org.eclipse.jdt.internal.corext.fix;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Hashtable;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.concurrent.Callable;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
+import java.util.stream.Collectors;
 
 import org.eclipse.swt.widgets.Display;
 
@@ -40,6 +49,8 @@ import org.eclipse.text.edits.MalformedTreeException;
 import org.eclipse.text.edits.TextEdit;
 import org.eclipse.text.edits.TextEditGroup;
 import org.eclipse.text.edits.UndoEdit;
+
+import org.eclipse.jface.dialogs.MessageDialog;
 
 import org.eclipse.jface.text.BadLocationException;
 import org.eclipse.jface.text.Document;
@@ -786,15 +797,16 @@ public class CleanUpRefactoring extends Refactoring implements IScheduledRefacto
 		int i= 0;
 		do {
 			ICleanUp cleanUp= cleanUps[i];
-			ICleanUpFix fix;
-			if (slowCleanUps != null) {
-				long timeBefore= System.currentTimeMillis();
-				fix= cleanUp.createFix(context);
-				if (System.currentTimeMillis() - timeBefore > SLOW_CLEAN_UP_THRESHOLD)
+
+			Runnable timeoutExceededHandler = () -> {
+				if (slowCleanUps != null) {
 					slowCleanUps.add(cleanUp);
-			} else {
-				fix= cleanUp.createFix(context);
-			}
+				}
+			};
+
+			String steps= Arrays.stream(cleanUp.getStepDescriptions()).collect(Collectors.joining(", ")); //$NON-NLS-1$
+			ICleanUpFix fix= runWithTimeoutAndCancelOption(() -> cleanUp.createFix(context), steps, timeoutExceededHandler);
+
 			if (fix != null) {
 				CompilationUnitChange current= fix.createChange(null);
 				TextEdit currentEdit= current.getEdit();
@@ -825,6 +837,61 @@ public class CleanUpRefactoring extends Refactoring implements IScheduledRefacto
 			undoneCleanUps.add(cleanUps[i]);
 		}
 		return solution;
+	}
+
+	private static <T> T runWithTimeoutAndCancelOption(Callable<T> operation, String operationDescription, Runnable timeoutExceededHandler) throws CoreException {
+		try (ExecutorService executor= Executors.newSingleThreadExecutor()) {
+			return runWithTimeoutAndCancelOption(executor, operation, operationDescription, SLOW_CLEAN_UP_THRESHOLD, timeoutExceededHandler);
+		}
+	}
+
+	private static <T> T runWithTimeoutAndCancelOption(ExecutorService executor, Callable<T> operation, String operationDescription, int timeoutMillis, Runnable timeoutExceededHandler)
+			throws CoreException {
+		Future<T> future= executor.submit(operation);
+
+		try {
+			if (timeoutMillis > 0) {
+				// The operation will be canceled when the timeout is exceeded and the user gets a chance to restart it.
+				return future.get(timeoutMillis, TimeUnit.MILLISECONDS);
+			}
+
+			// No chance to cancel the operation. Blocks the caller (UI) thread
+			return future.get();
+		} catch (InterruptedException | TimeoutException e) {
+			future.cancel(true);
+
+			timeoutExceededHandler.run();
+
+			String[] buttonLabels= new String[] {
+					FixMessages.CleanUpRefactoring_restart_operation,
+					FixMessages.CleanUpRefactoring_skip_operation
+			};
+			// Ask the user if the operation should be canceled
+			MessageDialog dialog= new MessageDialog(
+					Display.getDefault().getActiveShell(),
+					FixMessages.CleanUpRefactoring_operation_too_long_title,
+					null,
+					Messages.format(FixMessages.CleanUpRefactoring_operation_too_long_description, operationDescription),
+					MessageDialog.QUESTION,
+					buttonLabels,
+					1 // default index is "No"
+			);
+
+			int result= dialog.open();
+
+			if (result == 0) {
+				// Restart the operation without a timeout (blocks the caller thread)
+				return runWithTimeoutAndCancelOption(executor, operation, null, 0, null);
+			}
+
+		} catch (ExecutionException e) {
+			if (e.getCause() instanceof CoreException ise) {
+				throw ise;
+			}
+			throw new CoreException(Status.error(e.getMessage(), e.getCause()));
+		}
+
+		return null;
 	}
 
 	private static void copyChangeGroups(CompilationUnitChange target, CompilationUnitChange source) {
