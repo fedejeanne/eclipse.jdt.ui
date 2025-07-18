@@ -805,7 +805,7 @@ public class CleanUpRefactoring extends Refactoring implements IScheduledRefacto
 			};
 
 			String steps= Arrays.stream(cleanUp.getStepDescriptions()).collect(Collectors.joining(", ")); //$NON-NLS-1$
-			ICleanUpFix fix= runWithTimeoutAndCancelOption(() -> cleanUp.createFix(context), steps, timeoutExceededHandler);
+			ICleanUpFix fix= runWithTimeoutAndCancelOption(() -> cleanUp.createFix(context, Progress.subMonitor(null, i)), steps, timeoutExceededHandler);
 
 			if (fix != null) {
 				CompilationUnitChange current= fix.createChange(null);

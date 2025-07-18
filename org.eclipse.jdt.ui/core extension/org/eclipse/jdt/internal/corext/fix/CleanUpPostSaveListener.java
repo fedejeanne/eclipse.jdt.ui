@@ -386,7 +386,7 @@ public class CleanUpPostSaveListener implements IPostSaveListener {
     				}
 
     				ArrayList<ICleanUp> undoneCleanUps= new ArrayList<>();
-					CleanUpChange change= CleanUpRefactoring.calculateChange(context, cleanUps, undoneCleanUps, slowCleanUps);
+					CleanUpChange change= CleanUpRefactoring.calculateChange(context, cleanUps, undoneCleanUps, slowCleanUps, Progress.subMonitor(monitor, 1));
 
     				RefactoringStatus postCondition= new RefactoringStatus();
 					for (ICleanUp cleanUp : cleanUps) {

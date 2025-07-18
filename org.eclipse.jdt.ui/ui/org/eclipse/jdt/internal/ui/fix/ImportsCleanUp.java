@@ -54,7 +54,7 @@ public class ImportsCleanUp extends AbstractCleanUp {
 	}
 
     @Override
-	public ICleanUpFix createFix(CleanUpContext context) throws CoreException {
+	public ICleanUpFix createFix(CleanUpContext context, IProgressMonitor monitor) throws CoreException {
     	CompilationUnit compilationUnit= context.getAST();
     	if (compilationUnit == null)
     		return null;

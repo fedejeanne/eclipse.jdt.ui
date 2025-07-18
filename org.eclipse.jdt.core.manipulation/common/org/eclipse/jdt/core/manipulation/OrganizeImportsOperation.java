@@ -28,6 +28,7 @@ import java.util.Set;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.OperationCanceledException;
+import org.eclipse.core.runtime.Status;
 import org.eclipse.core.runtime.SubMonitor;
 import org.eclipse.core.runtime.jobs.ISchedulingRule;
 
@@ -578,7 +579,24 @@ public class OrganizeImportsOperation implements IWorkspaceRunnable {
 		if (astRoot == null) {
 			astRoot= CoreASTProvider.getInstance().getAST(fCompilationUnit, CoreASTProvider.WAIT_YES, subMonitor.split(2));
 		}
-		subMonitor.setWorkRemaining(7);
+
+		int delayInSeconds = 3;
+		subMonitor.setWorkRemaining(7 + delayInSeconds);
+
+		for (int i=delayInSeconds; i>0 /*&& !Thread.currentThread().isInterrupted()*/; i--) {
+			try {
+				System.out.println("[" + Thread.currentThread().getName() + "] sleeping... " + i + " seconds left"); //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
+				Thread.sleep(1_000);
+				subMonitor.split(1);
+			} catch (InterruptedException e) {
+				// ignore
+//				throw new OperationCanceledException();
+			}
+		}
+
+		System.out.println("Flipping a coin"); //$NON-NLS-1$
+		if (Math.random() < 0.5)
+			throw	new CoreException(Status.error("You lost the coin-toss", new RuntimeException())); //$NON-NLS-1$
 
 		ImportRewrite importsRewrite= CodeStyleConfiguration.createImportRewrite(astRoot, fRestoreExistingImports);
 		if (astRoot.getAST().hasResolvedBindings()) {

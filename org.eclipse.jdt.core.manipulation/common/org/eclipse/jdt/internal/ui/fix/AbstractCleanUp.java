@@ -27,10 +27,10 @@ import org.eclipse.jdt.core.IJavaProject;
 import org.eclipse.jdt.ui.cleanup.CleanUpContext;
 import org.eclipse.jdt.ui.cleanup.CleanUpOptions;
 import org.eclipse.jdt.ui.cleanup.CleanUpRequirements;
-import org.eclipse.jdt.ui.cleanup.ICleanUp;
+import org.eclipse.jdt.ui.cleanup.ICleanUp2;
 import org.eclipse.jdt.ui.cleanup.ICleanUpFix;
 
-public abstract class AbstractCleanUp implements ICleanUp {
+public abstract class AbstractCleanUp implements ICleanUp2 {
 
 	private CleanUpOptions fOptions;
 
@@ -102,6 +102,11 @@ public abstract class AbstractCleanUp implements ICleanUp {
 	 */
 	@Override
 	public ICleanUpFix createFix(CleanUpContext context) throws CoreException {
+		return null;
+	}
+
+	@Override
+	public ICleanUpFix createFix(CleanUpContext context, IProgressMonitor monitor) throws CoreException {
 		return null;
 	}
 
