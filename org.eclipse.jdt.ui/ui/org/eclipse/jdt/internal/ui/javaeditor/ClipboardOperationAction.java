@@ -24,6 +24,7 @@ import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.ResourceBundle;
+import java.util.concurrent.atomic.AtomicReference;
 
 import org.eclipse.swt.SWTError;
 import org.eclipse.swt.custom.BusyIndicator;
@@ -40,9 +41,12 @@ import org.eclipse.swt.widgets.Shell;
 
 import org.eclipse.core.runtime.Assert;
 import org.eclipse.core.runtime.CoreException;
+import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.IStatus;
+import org.eclipse.core.runtime.OperationCanceledException;
 import org.eclipse.core.runtime.Status;
 
+import org.eclipse.jface.operation.IRunnableWithProgress;
 import org.eclipse.jface.viewers.ISelection;
 
 import org.eclipse.jface.text.BadLocationException;
@@ -405,7 +409,16 @@ public final class ClipboardOperationAction extends TextEditorAction {
 		if (inputElement != null && selection instanceof ITextSelection && !selection.isEmpty()) {
 			ITextSelection textSelection= (ITextSelection) selection;
 			if (isNonTrivialSelection(textSelection)) {
-				clipboardData= getClipboardData(inputElement, textSelection.getOffset(), textSelection.getLength());
+				AtomicReference<Object> clipboardDataRef = new AtomicReference<>();
+				try {
+					runUsingProgressService(monitor -> {
+						clipboardDataRef.set(getClipboardData(inputElement, textSelection.getOffset(), textSelection.getLength(), null));
+					});
+				} catch (CoreException e) {
+					JavaPlugin.log(e);
+				}
+
+				clipboardData = clipboardDataRef.get();
 			}
 		}
 
@@ -456,6 +469,43 @@ public final class ClipboardOperationAction extends TextEditorAction {
 		}
 	}
 
+	private static boolean runUsingProgressService(IRunnableWithProgress op) throws CoreException {
+
+		IWorkbenchSiteProgressService progressService= null;
+		try {
+			progressService= PlatformUI.getWorkbench().getActiveWorkbenchWindow().getActivePage().getActivePart().getSite().getAdapter(IWorkbenchSiteProgressService.class);
+		} catch (NullPointerException npe) {
+			// Either this has been called from a non-UI thread or something is still missing (workbench window / active page / part / site)
+			return false;
+		}
+
+		try {
+			progressService.run(true, false, new IRunnableWithProgress() {
+				@Override
+				public void run(IProgressMonitor monitor) throws InvocationTargetException, InterruptedException {
+					try {
+						op.run(monitor);
+					} catch (OperationCanceledException e) {
+						throw new InvocationTargetException(e);
+					}
+				}
+			});
+		} catch (InvocationTargetException e) {
+			// CoreExceptions and OperationCanceledExceptions are re-thrown
+			if (e.getCause() instanceof CoreException ce)
+				throw ce;
+			if (e.getCause() instanceof OperationCanceledException ce)
+				throw ce;
+
+			// Other kind of exceptions are packed into a CoreException
+			throw new CoreException(Status.error(e.getCause().getMessage(), e.getCause()));
+		} catch (InterruptedException e) {
+			throw new OperationCanceledException();
+		}
+
+		return true;
+	}
+
 	private void setClipboardContents(Clipboard clipboard, Object[] datas, Transfer[] transfers) {
 		try {
 			clipboard.setContents(datas, transfers);
@@ -483,8 +533,8 @@ public final class ClipboardOperationAction extends TextEditorAction {
 	}
 
 
-	private ClipboardData getClipboardData(ITypeRoot inputElement, int offset, int length) {
-		CompilationUnit astRoot= SharedASTProviderCore.getAST(inputElement, SharedASTProviderCore.WAIT_ACTIVE_ONLY, null);
+	private ClipboardData getClipboardData(ITypeRoot inputElement, int offset, int length, IProgressMonitor monitor) {
+		CompilationUnit astRoot= SharedASTProviderCore.getAST(inputElement, SharedASTProviderCore.WAIT_ACTIVE_ONLY, monitor);
 		if (astRoot == null) {
 			return null;
 		}
