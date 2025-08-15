@@ -769,7 +769,9 @@ public class SemanticHighlightingReconciler implements IJavaReconcilingListener,
 
 		synchronized (fJobLock) {
 			final Job oldJob= fJob;
+			System.out.println("SEMANTIC HIGHLIGHTING");
 			if (fJob != null) {
+				System.out.println("CANCELING JOB");
 				fJob.cancel();
 				fJob= null;
 			}

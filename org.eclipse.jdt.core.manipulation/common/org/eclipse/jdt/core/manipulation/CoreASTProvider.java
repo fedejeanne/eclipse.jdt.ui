@@ -272,6 +272,21 @@ public final class CoreASTProvider {
 		if (progressMonitor != null && progressMonitor.isCanceled())
 			return null;
 
+		if (input.getElementName().contains("e")) { //$NON-NLS-1$
+			System.err.println("********************************************"); //$NON-NLS-1$
+			System.err.println(getThreadName() + " - Taking my time with this one"); //$NON-NLS-1$
+			System.err.println("********************************************"); //$NON-NLS-1$
+			try {
+				Thread.sleep(10_000);
+			} catch (InterruptedException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+			System.err.println("----------------------------------------------------"); //$NON-NLS-1$
+			System.out.println(getThreadName() + " - DONE"); //$NON-NLS-1$
+			System.err.println("----------------------------------------------------"); //$NON-NLS-1$
+
+		}
 		final ASTParser parser = ASTParser.newParser(IASTSharedValues.SHARED_AST_LEVEL);
 		parser.setResolveBindings(true);
 		parser.setStatementsRecovery(IASTSharedValues.SHARED_AST_STATEMENT_RECOVERY);
@@ -332,6 +347,8 @@ public final class CoreASTProvider {
 
 				// Signal - threads might wait for wrong element
 				synchronized (fWaitLock) {
+					if (JavaManipulationPlugin.DEBUG_AST_PROVIDER)
+						System.err.println(getThreadName() + " - " + DEBUG_PREFIX + "  signaling"); //$NON-NLS-1$ //$NON-NLS-2$
 					fWaitLock.notifyAll();
 				}
 
@@ -375,6 +392,8 @@ public final class CoreASTProvider {
 
 		// Signal AST change
 		synchronized (fWaitLock) {
+			if (JavaManipulationPlugin.DEBUG_AST_PROVIDER)
+				System.err.println(getThreadName() + " - " + DEBUG_PREFIX + "  signaling"); //$NON-NLS-1$ //$NON-NLS-2$
 			fWaitLock.notifyAll();
 		}
 	}
@@ -510,6 +529,8 @@ public final class CoreASTProvider {
 	 */
 	public void waitLockNotifyAll () {
 		synchronized (fWaitLock) {
+			if (JavaManipulationPlugin.DEBUG_AST_PROVIDER)
+				System.err.println(getThreadName() + " - " + DEBUG_PREFIX + "  signaling"); //$NON-NLS-1$ //$NON-NLS-2$
 			fWaitLock.notifyAll();
 		}
 	}

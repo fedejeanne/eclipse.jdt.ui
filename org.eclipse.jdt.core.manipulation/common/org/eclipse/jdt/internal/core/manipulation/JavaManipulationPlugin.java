@@ -50,7 +50,7 @@ public class JavaManipulationPlugin extends Plugin implements DebugOptionsListen
 	 */
 	public final static String CODEASSIST_FAVORITE_STATIC_MEMBERS= "content_assist_favorite_static_members"; //$NON-NLS-1$
 
-	public static boolean DEBUG_AST_PROVIDER;
+	public static boolean DEBUG_AST_PROVIDER = true;
 
 	public static boolean DEBUG_TYPE_CONSTRAINTS;
 
