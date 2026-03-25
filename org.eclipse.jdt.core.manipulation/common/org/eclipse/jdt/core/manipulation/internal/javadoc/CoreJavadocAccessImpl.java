@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2008, 2024 IBM Corporation and others.
+ * Copyright (c) 2008, 2026 IBM Corporation and others.
  *
  * This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License 2.0
@@ -975,13 +975,32 @@ public class CoreJavadocAccessImpl implements IJavadocAccess {
 
 		if (isReturn)
 			fBuf.append(JavaDocMessages.JavadocContentAccess2_returns_post);
-		if (isCode || (isLink && addCodeTagOnLink()))
-			fBuf.append("</code>"); //$NON-NLS-1$
+		if (isCode || (isLink && addCodeTagOnLink())) {
+			if (isCode) {
+				ASTNode sibling = getNextSiblingElement((TagElement)node.getParent(), node);
+				if (sibling != null) {
+					fBuf.append("\n </code>"); //$NON-NLS-1$
+				} else {
+					fBuf.append("</code>"); //$NON-NLS-1$
+				}
+			} else {
+				fBuf.append("</code>"); //$NON-NLS-1$
+			}
+		} else
 		if (isSnippet)
 			fBuf.append("</code></pre>"); //$NON-NLS-1$
 		if (isLiteral || isCode)
 			fLiteralContent--;
 
+	}
+
+	protected ASTNode getNextSiblingElement(TagElement parent, TagElement child) {
+		List<?> fragments = parent.fragments();
+		int index = fragments.indexOf(child);
+		if (index == -1 || index + 1 >= fragments.size()) {
+	        return null; // no next sibling
+	    }
+		return (ASTNode) fragments.get(index + 1);
 	}
 
 	protected boolean addCodeTagOnLink() {
@@ -1498,6 +1517,12 @@ public class CoreJavadocAccessImpl implements IJavadocAccess {
 					SimpleName paramName= param.getName();
 					if (paramName != null)
 						refMethodParamNames[i]= paramName.getIdentifier();
+				}
+			} else if (first instanceof TextElement href) {
+				String tagName= ((TagElement) href.getParent()).getTagName();
+				//should not process anchor tags
+				if (TagElement.TAG_LINK.equals(tagName) || TagElement.TAG_LINKPLAIN.equals(tagName)) {
+					refTypeName= href.getText();
 				}
 			}
 

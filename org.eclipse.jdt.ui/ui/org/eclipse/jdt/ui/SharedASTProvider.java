@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2007, 2020 IBM Corporation and others.
+ * Copyright (c) 2007, 2026 IBM Corporation and others.
  *
  * This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License 2.0
@@ -62,6 +62,7 @@ public final class SharedASTProvider {
 	/**
 	 * Wait flag class.
 	 */
+	@Deprecated
 	public static final class WAIT_FLAG {
 
 		private String fName;
@@ -70,9 +71,7 @@ public final class SharedASTProvider {
 			fName= name;
 		}
 
-		/*
-		 * @see java.lang.Object#toString()
-		 */
+		@Deprecated
 		@Override
 		public String toString() {
 			return fName;
@@ -87,6 +86,7 @@ public final class SharedASTProvider {
 	 * AST is not for the given Java element.
 	 * </p>
 	 */
+	@Deprecated
 	public static final WAIT_FLAG WAIT_YES= new WAIT_FLAG("wait yes"); //$NON-NLS-1$
 
 	/**
@@ -96,6 +96,7 @@ public final class SharedASTProvider {
 	 * No AST will be created by the AST provider.
 	 * </p>
 	 */
+	@Deprecated
 	public static final WAIT_FLAG WAIT_ACTIVE_ONLY= new WAIT_FLAG("wait active only"); //$NON-NLS-1$
 
 	/**
@@ -105,6 +106,7 @@ public final class SharedASTProvider {
 	 * No AST will be created by the AST provider.
 	 * </p>
 	 */
+	@Deprecated
 	public static final WAIT_FLAG WAIT_NO= new WAIT_FLAG("don't wait"); //$NON-NLS-1$
 
 
@@ -129,6 +131,7 @@ public final class SharedASTProvider {
 	 *         <li><code>null</code> will be returned if the operation gets canceled.</li>
 	 *         </ul>
 	 */
+	@Deprecated
 	public static CompilationUnit getAST(ITypeRoot element, WAIT_FLAG waitFlag, IProgressMonitor progressMonitor) {
 		CoreASTProvider.WAIT_FLAG finalWaitFlag = null;
 		if (waitFlag == WAIT_ACTIVE_ONLY) {

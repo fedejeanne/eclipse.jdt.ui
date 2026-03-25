@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2000, 2022 IBM Corporation and others.
+ * Copyright (c) 2000, 2025 IBM Corporation and others.
  *
  * This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License 2.0
@@ -22,12 +22,14 @@ import static org.junit.Assert.assertEquals;
 import java.util.ArrayList;
 import java.util.Hashtable;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 
+import org.eclipse.jdt.junit.JUnitCore;
 import org.eclipse.jdt.testplugin.JavaProjectHelper;
 import org.eclipse.jdt.testplugin.TestOptions;
 
@@ -35,6 +37,7 @@ import org.eclipse.jface.preference.IPreferenceStore;
 
 import org.eclipse.jface.text.contentassist.ICompletionProposal;
 
+import org.eclipse.jdt.core.IClasspathEntry;
 import org.eclipse.jdt.core.ICompilationUnit;
 import org.eclipse.jdt.core.IJavaProject;
 import org.eclipse.jdt.core.IPackageFragment;
@@ -53,6 +56,7 @@ import org.eclipse.jdt.ui.text.java.IJavaCompletionProposal;
 import org.eclipse.jdt.ui.text.java.correction.CUCorrectionProposal;
 
 import org.eclipse.jdt.internal.ui.JavaPlugin;
+import org.eclipse.jdt.internal.ui.text.correction.CorrectionMessages;
 
 public class ModifierCorrectionsQuickFixTest extends QuickFixTest {
 
@@ -84,6 +88,9 @@ public class ModifierCorrectionsQuickFixTest extends QuickFixTest {
 		StubUtility.setCodeTemplate(CodeTemplateContextType.CONSTRUCTORSTUB_ID, "", null);
 
 		fSourceFolder= JavaProjectHelper.addSourceContainer(fJProject1, "src");
+
+		IClasspathEntry cpe= JavaCore.newContainerEntry(JUnitCore.JUNIT5_CONTAINER_PATH);
+		JavaProjectHelper.addToClasspath(fJProject1, cpe);
 	}
 
 	@After
@@ -4113,6 +4120,71 @@ public class ModifierCorrectionsQuickFixTest extends QuickFixTest {
 	}
 
 	@Test
+	public void testMethodCanBeStatic2() throws Exception {
+		Hashtable<String, String> hashtable= JavaCore.getOptions();
+		hashtable.put(JavaCore.COMPILER_PB_MISSING_STATIC_ON_METHOD, JavaCore.ERROR);
+		hashtable.put(JavaCore.COMPILER_PB_POTENTIALLY_MISSING_STATIC_ON_METHOD, JavaCore.WARNING);
+		JavaCore.setOptions(hashtable);
+
+		IPackageFragment pack1= fSourceFolder.createPackageFragment("test1", false, null);
+		String str= """
+			package test1;
+			import org.junit.jupiter.api.BeforeEach;
+			import org.junit.jupiter.api.Test;
+			public class E {
+				@BeforeEach
+				public void setup() {
+				}
+				@Test
+			    public void foo() {
+			        System.out.println("doesn't need class");
+			    }
+			}
+			""";
+		ICompilationUnit cu= pack1.createCompilationUnit("E.java", str, false, null);
+
+		CompilationUnit astRoot= getASTRoot(cu);
+		ArrayList<IJavaCompletionProposal> proposals= collectCorrections(cu, astRoot, 1);
+		assertNumberOfProposals(proposals, 2);
+		assertCorrectLabels(proposals);
+
+		assertProposalDoesNotExist(proposals, CorrectionMessages.ModifierCorrectionSubProcessor_addstatic_description);
+	}
+
+	@Test
+	public void testMethodCanBeStatic3() throws Exception {
+		Hashtable<String, String> hashtable= JavaCore.getOptions();
+		hashtable.put(JavaCore.COMPILER_PB_MISSING_STATIC_ON_METHOD, JavaCore.ERROR);
+		hashtable.put(JavaCore.COMPILER_PB_POTENTIALLY_MISSING_STATIC_ON_METHOD, JavaCore.WARNING);
+		JavaCore.setOptions(hashtable);
+
+		IPackageFragment pack1= fSourceFolder.createPackageFragment("test1", false, null);
+		String str= """
+			package test1;
+			import org.junit.jupiter.api.BeforeEach;
+			import org.junit.jupiter.api.Test;
+			public class E {
+				@BeforeEach
+				public void setup() {
+					System.out.println("setup");
+				}
+				@Test
+			    public void foo() {
+			        System.out.println("doesn't need class");
+			    }
+			}
+			""";
+		ICompilationUnit cu= pack1.createCompilationUnit("E.java", str, false, null);
+
+		CompilationUnit astRoot= getASTRoot(cu);
+		ArrayList<IJavaCompletionProposal> proposals= collectCorrections(cu, astRoot, 2);
+		assertNumberOfProposals(proposals, 3);
+		assertCorrectLabels(proposals);
+
+		assertProposalDoesNotExist(proposals, CorrectionMessages.ModifierCorrectionSubProcessor_addstatic_description);
+	}
+
+	@Test
 	public void testMethodCanPotentiallyBeStatic() throws Exception {
 		Hashtable<String, String> hashtable= JavaCore.getOptions();
 		hashtable.put(JavaCore.COMPILER_PB_MISSING_STATIC_ON_METHOD, JavaCore.ERROR);
@@ -4531,4 +4603,111 @@ public class ModifierCorrectionsQuickFixTest extends QuickFixTest {
 		assertExpectedExistInProposals(proposals, expected);
 	}
 
+	@Test
+	public void testDeprecateMembersOfDeprecated1() throws Exception {
+		IPackageFragment pack1= fSourceFolder.createPackageFragment("test1", false, null);
+
+		String str= """
+			package test1;
+			@Deprecated abstract class Test {
+			    public abstract void m();
+			    protected String f;
+			    private String fPriv;
+			    class Inner {
+			    }
+			}
+			interface I {
+			    void mi();
+			}
+			@Deprecated interface I2 extends I {
+			    @Override
+			    void mi();
+			}
+			""";
+		ICompilationUnit cu=  pack1.createCompilationUnit("Test.java", str, false, null);
+
+		CompilationUnit astRoot= getASTRoot(cu);
+		ArrayList<ICompletionProposal> proposals= collectAllCorrections(cu, astRoot, 4);
+
+		assertCorrectLabels(proposals);
+		assertNumberOfProposals(proposals, 8);
+
+		String[] expected= new String[] {
+				"""
+				package test1;
+				@Deprecated abstract class Test {
+				    @Deprecated
+				    public abstract void m();
+				    protected String f;
+				    private String fPriv;
+				    class Inner {
+				    }
+				}
+				interface I {
+				    void mi();
+				}
+				@Deprecated interface I2 extends I {
+				    @Override
+				    void mi();
+				}
+				""",
+				"""
+				package test1;
+				@Deprecated abstract class Test {
+				    public abstract void m();
+				    @Deprecated
+				    protected String f;
+				    private String fPriv;
+				    class Inner {
+				    }
+				}
+				interface I {
+				    void mi();
+				}
+				@Deprecated interface I2 extends I {
+				    @Override
+				    void mi();
+				}
+				""",
+				"""
+				package test1;
+				@Deprecated abstract class Test {
+				    public abstract void m();
+				    protected String f;
+				    private String fPriv;
+				    @Deprecated
+				    class Inner {
+				    }
+				}
+				interface I {
+				    void mi();
+				}
+				@Deprecated interface I2 extends I {
+				    @Override
+				    void mi();
+				}
+				""",
+				"""
+				package test1;
+				@Deprecated abstract class Test {
+				    public abstract void m();
+				    protected String f;
+				    private String fPriv;
+				    class Inner {
+				    }
+				}
+				interface I {
+				    void mi();
+				}
+				@Deprecated interface I2 extends I {
+				    @Deprecated
+				    @Override
+				    void mi();
+				}
+				""",
+		};
+		Class<IJavaCompletionProposal> clazz= IJavaCompletionProposal.class;
+		List<IJavaCompletionProposal> javaProposals= proposals.stream().filter(clazz::isInstance).map(clazz::cast).collect(Collectors.toList());
+		assertExpectedExistInProposals(javaProposals, expected);
+	}
 }

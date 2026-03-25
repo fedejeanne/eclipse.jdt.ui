@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2000, 2024 IBM Corporation and others.
+ * Copyright (c) 2000, 2025 IBM Corporation and others.
  *
  * This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License 2.0
@@ -1003,7 +1003,7 @@ public class GenerateHashCodeEqualsTest extends SourceTestCase {
 				"	ElementType anEnum;\r\n" +
 				"	@Override\r\n" +
 				"	public int hashCode() {\r\n" +
-				"		return Objects.hash(aBool, aByte, aChar, anInt, aDouble, aFloat, aLong, aString, aListOfStrings, anEnum);\r\n" +
+				"		return Objects.hash(Boolean.valueOf(aBool), Byte.valueOf(aByte), Character.valueOf(aChar), Integer.valueOf(anInt), Double.valueOf(aDouble), Float.valueOf(aFloat), Long.valueOf(aLong), aString, aListOfStrings, anEnum);\r\n" +
 				"	}\r\n" +
 				"	@Override\r\n" +
 				"	public boolean equals(Object obj) {\r\n" +
@@ -1112,7 +1112,7 @@ public class GenerateHashCodeEqualsTest extends SourceTestCase {
 				"	List<String> aListOfStrings;\r\n" +
 				"	@Override\r\n" +
 				"	public int hashCode() {\r\n" +
-				"		return Objects.hash(aBool, aByte, aChar, anInt, aDouble, aFloat, aLong, aString, aListOfStrings);\r\n" +
+				"		return Objects.hash(Boolean.valueOf(aBool), Byte.valueOf(aByte), Character.valueOf(aChar), Integer.valueOf(anInt), Double.valueOf(aDouble), Float.valueOf(aFloat), Long.valueOf(aLong), aString, aListOfStrings);\r\n" +
 				"	}\r\n" +
 				"	@Override\r\n" +
 				"	public boolean equals(Object obj) {\r\n" +
@@ -1886,6 +1886,8 @@ public class GenerateHashCodeEqualsTest extends SourceTestCase {
 				"	public boolean equals(Object obj) {\r\n" +
 				"		if (this == obj)\r\n" +
 				"			return true;\r\n" +
+				"		if (obj == null)\r\n" +
+				"			return false;\r\n" +
 				"		if (!super.equals(obj))\r\n" +
 				"			return false;\r\n" +
 				"		if (getClass() != obj.getClass())\r\n" +
@@ -1954,6 +1956,8 @@ public class GenerateHashCodeEqualsTest extends SourceTestCase {
 				"	public boolean equals(Object obj) {\r\n" +
 				"		if (this == obj)\r\n" +
 				"			return true;\r\n" +
+				"		if (obj == null)\r\n" +
+				"			return false;\r\n" +
 				"		if (!super.equals(obj))\r\n" +
 				"			return false;\r\n" +
 				"		if (getClass() != obj.getClass())\r\n" +
@@ -2051,6 +2055,8 @@ public class GenerateHashCodeEqualsTest extends SourceTestCase {
 				"	public boolean equals(Object obj) {\r\n" +
 				"		if (this == obj)\r\n" +
 				"			return true;\r\n" +
+				"		if (obj == null)\r\n" +
+				"			return false;\r\n" +
 				"		if (!super.equals(obj))\r\n" +
 				"			return false;\r\n" +
 				"		if (getClass() != obj.getClass())\r\n" +
@@ -2336,6 +2342,8 @@ public class GenerateHashCodeEqualsTest extends SourceTestCase {
 						public boolean equals(Object obj) {
 							if (this == obj)
 								return true;
+							if (obj == null)
+								return false;
 							if (!super.equals(obj))
 								return false;
 							if (getClass() != obj.getClass())

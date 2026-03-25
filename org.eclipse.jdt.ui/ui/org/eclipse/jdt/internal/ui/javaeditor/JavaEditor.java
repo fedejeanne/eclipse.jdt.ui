@@ -84,6 +84,7 @@ import org.eclipse.jface.viewers.SelectionChangedEvent;
 import org.eclipse.jface.viewers.StructuredSelection;
 
 import org.eclipse.jface.text.BadLocationException;
+import org.eclipse.jface.text.DefaultLineTracker;
 import org.eclipse.jface.text.DocumentEvent;
 import org.eclipse.jface.text.IDocument;
 import org.eclipse.jface.text.IDocumentExtension4;
@@ -98,9 +99,11 @@ import org.eclipse.jface.text.ITextSelection;
 import org.eclipse.jface.text.ITextViewer;
 import org.eclipse.jface.text.ITextViewerExtension2;
 import org.eclipse.jface.text.ITextViewerExtension5;
+import org.eclipse.jface.text.ITextViewerExtension7;
 import org.eclipse.jface.text.ITypedRegion;
 import org.eclipse.jface.text.Position;
 import org.eclipse.jface.text.Region;
+import org.eclipse.jface.text.TabsToSpacesConverter;
 import org.eclipse.jface.text.TextSelection;
 import org.eclipse.jface.text.TextUtilities;
 import org.eclipse.jface.text.codemining.ICodeMiningProvider;
@@ -1875,8 +1878,8 @@ public abstract class JavaEditor extends AbstractDecoratedTextEditor implements 
 		 * This is a performance optimization to reduce the computation of
 		 * the text presentation triggered by {@link #setVisibleDocument(IDocument)}
 		 */
-		if (sourceViewer instanceof JavaSourceViewer && isFoldingEnabled() && (store == null || !store.getBoolean(PreferenceConstants.EDITOR_SHOW_SEGMENTS)))
-			((JavaSourceViewer)sourceViewer).prepareDelayedProjection();
+		if (sourceViewer instanceof JavaSourceViewer javaSourceViewer && isFoldingEnabled())
+			javaSourceViewer.prepareDelayedProjection();
 
 		if (sourceViewer instanceof ProjectionViewer) {
 			fProjectionSupport= new ProjectionSupport((ProjectionViewer)sourceViewer, getAnnotationAccess(), getSharedColors());
@@ -2559,8 +2562,7 @@ public abstract class JavaEditor extends AbstractDecoratedTextEditor implements 
 		if (sourceViewer instanceof JavaSourceViewer)
 			javaSourceViewer= (JavaSourceViewer)sourceViewer;
 
-		IPreferenceStore store= getPreferenceStore();
-		if (javaSourceViewer != null && isFoldingEnabled() &&(store == null || !store.getBoolean(PreferenceConstants.EDITOR_SHOW_SEGMENTS)))
+		if (javaSourceViewer != null && isFoldingEnabled())
 			javaSourceViewer.prepareDelayedProjection();
 
 		super.doSetInput(input);
@@ -3507,6 +3509,20 @@ public abstract class JavaEditor extends AbstractDecoratedTextEditor implements 
 			} finally {
 				monitor.done();
 			}
+		}
+	}
+
+	@Override
+	protected void installTabsToSpacesConverter() {
+		SourceViewerConfiguration config = getSourceViewerConfiguration();
+		if (config != null && getSourceViewer() instanceof ITextViewerExtension7) {
+			int tabWidth = config.getTabWidth(getSourceViewer());
+			TabsToSpacesConverter tabToSpacesConverter = new JavaTabsToSpacesConverter();
+			tabToSpacesConverter.setLineTracker(new DefaultLineTracker());
+			tabToSpacesConverter.setNumberOfSpacesPerTab(tabWidth);
+			tabToSpacesConverter.setDeleteSpacesAsTab(isSpacesAsTabsDeletionEnabled());
+			((ITextViewerExtension7) getSourceViewer()).setTabsToSpacesConverter(tabToSpacesConverter);
+			updateIndentPrefixes();
 		}
 	}
 

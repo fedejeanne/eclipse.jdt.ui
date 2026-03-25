@@ -733,6 +733,8 @@ public final class RefactoringCoreMessages extends NLS {
 
 	public static String ExtractTempRefactoring_side_effects_possible;
 
+	public static String ExtractTempRefactoring_sum_mismatch;
+
 	public static String FlowAnalyzer_execution_flow;
 
 	public static String HierarchyRefactoring_add_member;
@@ -1332,6 +1334,8 @@ public final class RefactoringCoreMessages extends NLS {
 	public static String MoveInstanceMethodProcessor_descriptor_description;
 
 	public static String MoveInstanceMethodProcessor_descriptor_description_short;
+
+	public static String MoveInstanceMethodProcessor_generic_type_possible_error;
 
 	public static String MoveInstanceMethodProcessor_inline_inaccurate;
 
@@ -2500,6 +2504,48 @@ public final class RefactoringCoreMessages extends NLS {
 	public static String UseSupertypeWherePossibleRefactoring_name;
 
 	public static String ChangeSignatureRefactoring_lambda_expression;
+
+	public static String ConvertToRecordRefactoring_name;
+
+	public static String ConvertToRecordRefactoring_no_type;
+
+	public static String ConvertToRecordRefactoring_unexpected_error;
+
+	public static String ConvertToRecordRefactoring_not_private;
+
+	public static String ConvertToRecordRefactoring_cannot_convert_fields;
+
+	public static String ConvertToRecordRefactoring_has_constructors;
+
+	public static String ConvertToRecordRefactoring_not_simple_case;
+
+	public static String ConvertToRecordRefactoring_progress_updating_references;
+
+	public static String ConvertToRecordRefactoring_group_replace_getters;
+
+	public static String ConvertToRecordRefactoring_descriptor_description_short;
+
+	public static String ConvertToRecordRefactoring_descriptor_description;
+
+	public static String ConvertToRecordRefactoring_not_enough_getters;
+
+	public static String ConvertToRecordRefactoring_cannot_extend;
+
+	public static String ConvertToRecordRefactoring_fields_initialized;
+
+	public static String ConvertToRecordRefactoring_multiple_constructors;
+
+	public static String ConvertToRecordRefactoring_nonstandard_constructor;
+
+	public static String ConvertToRecordRefactoring_not_implicit_getter;
+
+	public static String ConvertToRecordRefactoring_setter_found;
+
+	public static String ConvertToRecordRefactoring_subclassed_error;
+
+	public static String ConvertToRecordRefactoring_has_initializer;
+
+	public static String ConvertToRecordRefactoring_member_types_not_supported;
 
 	static {
 		NLS.initializeMessages(BUNDLE_NAME, RefactoringCoreMessages.class);

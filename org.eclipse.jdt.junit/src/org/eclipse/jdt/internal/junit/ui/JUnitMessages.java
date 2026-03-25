@@ -65,6 +65,7 @@ public final class JUnitMessages extends NLS {
 
 	public static String JUnitAddLibraryProposa_junit4_label;
 	public static String JUnitAddLibraryProposa_junit5_label;
+	public static String JUnitAddLibraryProposa_junit6_label;
 
 	public static String JUnitAddLibraryProposal_info;
 	public static String JUnitAddLibraryProposal_title;
@@ -72,6 +73,7 @@ public final class JUnitMessages extends NLS {
 
 	public static String JUnitAddLibraryProposal_junit4_info;
 	public static String JUnitAddLibraryProposal_junit5_info;
+	public static String JUnitAddLibraryProposal_junit6_info;
 	public static String JUnitAddLibraryProposal_label;
 
 	public static String JUnitContainerWizardPage_combo_label;
@@ -89,6 +91,8 @@ public final class JUnitMessages extends NLS {
 	public static String JUnitContainerWizardPage_option_junit4;
 
 	public static String JUnitContainerWizardPage_option_junit5;
+
+	public static String JUnitContainerWizardPage_option_junit6;
 
 	public static String JUnitClasspathFixProcessor_progress_desc;
 
@@ -121,6 +125,8 @@ public final class JUnitMessages extends NLS {
 	public static String JUnitLaunchConfigurationTab_error_test_method_not_found;
 
 	public static String JUnitLaunchConfigurationTab_error_testannotationnotonpath;
+
+	public static String JUnitLaunchConfigurationTab_error_mixedJUnitJupiterVersions;
 
 	public static String JUnitLaunchConfigurationTab_error_testcasenotonpath;
 
@@ -230,6 +236,14 @@ public final class JUnitMessages extends NLS {
 	public static String JUnitQuickFixProcessor_apply_problem_title;
 
 	public static String JUnitQuickFixProcessor_add_assert_info;
+
+	public static String JUnitQuickAssistProcessor_add_annotation_description;
+
+	public static String JUnitQuickAssistProcessor_add_annotation_info;
+
+	public static String JUnitQuickAssistProcessor_remove_annotation_description;
+
+	public static String JUnitQuickAssistProcessor_remove_annotation_info;
 
 	public static String JUnitViewEditorLauncher_dialog_title;
 

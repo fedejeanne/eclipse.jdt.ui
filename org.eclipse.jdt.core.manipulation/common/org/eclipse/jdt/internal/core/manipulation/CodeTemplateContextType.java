@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2000, 2020 IBM Corporation and others.
+ * Copyright (c) 2000, 2025 IBM Corporation and others.
  *
  * This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License 2.0
@@ -57,11 +57,21 @@ public class CodeTemplateContextType extends TemplateContextType {
 	public static final String GETTERCOMMENT_CONTEXTTYPE= "gettercomment_context"; //$NON-NLS-1$
 	public static final String SETTERCOMMENT_CONTEXTTYPE= "settercomment_context"; //$NON-NLS-1$
 	public static final String MODULECOMMENT_CONTEXTTYPE= "modulecomment_context"; //$NON-NLS-1$
+	public static final String MARKDOWNFILECOMMENT_CONTEXTTYPE= "markdownfilecomment_context"; //$NON-NLS-1$
+	public static final String MARKDOWNTYPECOMMENT_CONTEXTTYPE= "markdowntypecomment_context"; //$NON-NLS-1$
+	public static final String MARKDOWNFIELDCOMMENT_CONTEXTTYPE= "markdownfieldcomment_context"; //$NON-NLS-1$
+	public static final String MARKDOWNMETHODCOMMENT_CONTEXTTYPE= "markdownmethodcomment_context"; //$NON-NLS-1$
+	public static final String MARKDOWNCONSTRUCTORCOMMENT_CONTEXTTYPE= "markdownconstructorcomment_context"; //$NON-NLS-1$
+	public static final String MARKDOWNDELEGATECOMMENT_CONTEXTTYPE= "markdowndelegatecomment_context"; //$NON-NLS-1$
+	public static final String MARKDOWNGETTERCOMMENT_CONTEXTTYPE= "markdowngettercomment_context"; //$NON-NLS-1$
+	public static final String MARKDOWNSETTERCOMMENT_CONTEXTTYPE= "markdownsettercomment_context"; //$NON-NLS-1$
+	public static final String MARKDOWNMODULECOMMENT_CONTEXTTYPE= "markdownmodulecomment_context"; //$NON-NLS-1$
 
 	/* templates */
 
 	private static final String CODETEMPLATES_PREFIX= "org.eclipse.jdt.ui.text.codetemplates."; //$NON-NLS-1$
 	public static final String COMMENT_SUFFIX= "comment"; //$NON-NLS-1$
+	public static final String MARKDOWN_COMMENT_PREFIX= "markdown"; //$NON-NLS-1$
 
 	public static final String CATCHBLOCK_ID= CODETEMPLATES_PREFIX + "catchblock"; //$NON-NLS-1$
 	public static final String METHODSTUB_ID= CODETEMPLATES_PREFIX + "methodbody"; //$NON-NLS-1$
@@ -85,6 +95,15 @@ public class CodeTemplateContextType extends TemplateContextType {
 	public static final String GETTERCOMMENT_ID= CODETEMPLATES_PREFIX + "getter" + COMMENT_SUFFIX; //$NON-NLS-1$
 	public static final String SETTERCOMMENT_ID= CODETEMPLATES_PREFIX + "setter" + COMMENT_SUFFIX; //$NON-NLS-1$
 	public static final String MODULECOMMENT_ID= CODETEMPLATES_PREFIX + "module" + COMMENT_SUFFIX; //$NON-NLS-1$
+	public static final String MARKDOWNFILECOMMENT_ID= CODETEMPLATES_PREFIX + "markdownfile" + COMMENT_SUFFIX; //$NON-NLS-1$
+	public static final String MARKDOWNTYPECOMMENT_ID= CODETEMPLATES_PREFIX + "markdowntype" + COMMENT_SUFFIX; //$NON-NLS-1$
+	public static final String MARKDOWNFIELDCOMMENT_ID= CODETEMPLATES_PREFIX + "markdownfield" + COMMENT_SUFFIX; //$NON-NLS-1$
+	public static final String MARKDOWNMETHODCOMMENT_ID= CODETEMPLATES_PREFIX + "markdownmethod" + COMMENT_SUFFIX; //$NON-NLS-1$
+	public static final String MARKDOWNCONSTRUCTORCOMMENT_ID= CODETEMPLATES_PREFIX + "markdownconstructor" + COMMENT_SUFFIX; //$NON-NLS-1$
+	public static final String MARKDOWNDELEGATECOMMENT_ID= CODETEMPLATES_PREFIX + "markdowndelegate" + COMMENT_SUFFIX; //$NON-NLS-1$
+	public static final String MARKDOWNGETTERCOMMENT_ID= CODETEMPLATES_PREFIX + "markdowngetter" + COMMENT_SUFFIX; //$NON-NLS-1$
+	public static final String MARKDOWNSETTERCOMMENT_ID= CODETEMPLATES_PREFIX + "markdownsetter" + COMMENT_SUFFIX; //$NON-NLS-1$
+	public static final String MARKDOWNMODULECOMMENT_ID= CODETEMPLATES_PREFIX + "markdownmodule" + COMMENT_SUFFIX; //$NON-NLS-1$
 
 	/* resolver types */
 	public static final String EXCEPTION_TYPE= "exception_type"; //$NON-NLS-1$
@@ -229,6 +248,7 @@ public class CodeTemplateContextType extends TemplateContextType {
 			addResolver(new CodeTemplateVariableResolver(TYPENAME,  JavaManipulationMessages.CodeTemplateContextType_variable_description_typename));
 			addCompilationUnitVariables();
 			break;
+		case MARKDOWNTYPECOMMENT_CONTEXTTYPE:
 		case TYPECOMMENT_CONTEXTTYPE:
 			addResolver(new CodeTemplateVariableResolver(TYPENAME,  JavaManipulationMessages.CodeTemplateContextType_variable_description_typename));
 			addResolver(new CodeTemplateVariableResolver(ENCLOSING_TYPE,  JavaManipulationMessages.CodeTemplateContextType_variable_description_enclosingtype));
@@ -236,17 +256,20 @@ public class CodeTemplateContextType extends TemplateContextType {
 			addCompilationUnitVariables();
 			fIsComment= true;
 			break;
+		case MARKDOWNFILECOMMENT_CONTEXTTYPE:
 		case FILECOMMENT_CONTEXTTYPE:
 			addResolver(new CodeTemplateVariableResolver(TYPENAME,  JavaManipulationMessages.CodeTemplateContextType_variable_description_typename));
 			addCompilationUnitVariables();
 			fIsComment= true;
 			break;
+		case MARKDOWNFIELDCOMMENT_CONTEXTTYPE:
 		case FIELDCOMMENT_CONTEXTTYPE:
 			addResolver(new CodeTemplateVariableResolver(FIELD_TYPE, JavaManipulationMessages.CodeTemplateContextType_variable_description_fieldtype));
 			addResolver(new CodeTemplateVariableResolver(FIELD, JavaManipulationMessages.CodeTemplateContextType_variable_description_fieldname));
 			addCompilationUnitVariables();
 			fIsComment= true;
 			break;
+		case MARKDOWNMETHODCOMMENT_CONTEXTTYPE:
 		case METHODCOMMENT_CONTEXTTYPE:
 			addResolver(new CodeTemplateVariableResolver(ENCLOSING_TYPE,  JavaManipulationMessages.CodeTemplateContextType_variable_description_enclosingtype));
 			addResolver(new CodeTemplateVariableResolver(ENCLOSING_METHOD,  JavaManipulationMessages.CodeTemplateContextType_variable_description_enclosingmethod));
@@ -255,6 +278,7 @@ public class CodeTemplateContextType extends TemplateContextType {
 			addCompilationUnitVariables();
 			fIsComment= true;
 			break;
+		case MARKDOWNMODULECOMMENT_CONTEXTTYPE:
 		case MODULECOMMENT_CONTEXTTYPE:
 			addResolver(new CodeTemplateVariableResolver(ENCLOSING_MODULE, JavaManipulationMessages.CodeTemplateContextType_variable_description_enclosingmodule));
 			addResolver(new TagsVariableResolver());
@@ -269,6 +293,7 @@ public class CodeTemplateContextType extends TemplateContextType {
 			addCompilationUnitVariables();
 			fIsComment= true;
 			break;
+		case MARKDOWNDELEGATECOMMENT_CONTEXTTYPE:
 		case DELEGATECOMMENT_CONTEXTTYPE:
 			addResolver(new CodeTemplateVariableResolver(ENCLOSING_TYPE,  JavaManipulationMessages.CodeTemplateContextType_variable_description_enclosingtype));
 			addResolver(new CodeTemplateVariableResolver(ENCLOSING_METHOD,  JavaManipulationMessages.CodeTemplateContextType_variable_description_enclosingmethod));
@@ -277,12 +302,14 @@ public class CodeTemplateContextType extends TemplateContextType {
 			addCompilationUnitVariables();
 			fIsComment= true;
 			break;
+		case MARKDOWNCONSTRUCTORCOMMENT_CONTEXTTYPE:
 		case CONSTRUCTORCOMMENT_CONTEXTTYPE:
 			addResolver(new CodeTemplateVariableResolver(ENCLOSING_TYPE,  JavaManipulationMessages.CodeTemplateContextType_variable_description_enclosingtype));
 			addResolver(new TagsVariableResolver());
 			addCompilationUnitVariables();
 			fIsComment= true;
 			break;
+		case MARKDOWNGETTERCOMMENT_CONTEXTTYPE:
 		case GETTERCOMMENT_CONTEXTTYPE:
 			addResolver(new CodeTemplateVariableResolver(ENCLOSING_TYPE,  JavaManipulationMessages.CodeTemplateContextType_variable_description_enclosingtype));
 			addResolver(new CodeTemplateVariableResolver(FIELD_TYPE,  JavaManipulationMessages.CodeTemplateContextType_variable_description_getterfieldtype));
@@ -292,6 +319,7 @@ public class CodeTemplateContextType extends TemplateContextType {
 			addCompilationUnitVariables();
 			fIsComment= true;
 			break;
+		case MARKDOWNSETTERCOMMENT_CONTEXTTYPE:
 		case SETTERCOMMENT_CONTEXTTYPE:
 			addResolver(new CodeTemplateVariableResolver(ENCLOSING_TYPE,  JavaManipulationMessages.CodeTemplateContextType_variable_description_enclosingtype));
 			addResolver(new CodeTemplateVariableResolver(FIELD_TYPE,  JavaManipulationMessages.CodeTemplateContextType_variable_description_getterfieldtype));
@@ -366,6 +394,15 @@ public class CodeTemplateContextType extends TemplateContextType {
 		registry.addContextType(new CodeTemplateContextType(CodeTemplateContextType.DELEGATECOMMENT_CONTEXTTYPE));
 		registry.addContextType(new CodeTemplateContextType(CodeTemplateContextType.GETTERCOMMENT_CONTEXTTYPE));
 		registry.addContextType(new CodeTemplateContextType(CodeTemplateContextType.SETTERCOMMENT_CONTEXTTYPE));
+		registry.addContextType(new CodeTemplateContextType(CodeTemplateContextType.MARKDOWNFILECOMMENT_CONTEXTTYPE));
+		registry.addContextType(new CodeTemplateContextType(CodeTemplateContextType.MARKDOWNTYPECOMMENT_CONTEXTTYPE));
+		registry.addContextType(new CodeTemplateContextType(CodeTemplateContextType.MARKDOWNFIELDCOMMENT_CONTEXTTYPE));
+		registry.addContextType(new CodeTemplateContextType(CodeTemplateContextType.MARKDOWNMETHODCOMMENT_CONTEXTTYPE));
+		registry.addContextType(new CodeTemplateContextType(CodeTemplateContextType.MARKDOWNMODULECOMMENT_CONTEXTTYPE));
+		registry.addContextType(new CodeTemplateContextType(CodeTemplateContextType.MARKDOWNCONSTRUCTORCOMMENT_CONTEXTTYPE));
+		registry.addContextType(new CodeTemplateContextType(CodeTemplateContextType.MARKDOWNDELEGATECOMMENT_CONTEXTTYPE));
+		registry.addContextType(new CodeTemplateContextType(CodeTemplateContextType.MARKDOWNGETTERCOMMENT_CONTEXTTYPE));
+		registry.addContextType(new CodeTemplateContextType(CodeTemplateContextType.MARKDOWNSETTERCOMMENT_CONTEXTTYPE));
 	}
 
 	/*
@@ -380,7 +417,6 @@ public class CodeTemplateContextType extends TemplateContextType {
 			}
 		}
 	}
-
 
 	private boolean isValidComment(String template) {
 		IScanner scanner= ToolFactory.createScanner(true, false, false, false);

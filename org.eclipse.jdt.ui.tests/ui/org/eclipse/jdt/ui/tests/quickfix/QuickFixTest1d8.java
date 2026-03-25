@@ -3135,7 +3135,7 @@ public class QuickFixTest1d8 extends QuickFixTest {
 		ICompilationUnit cu= pack2.createCompilationUnit("E.java", str1, false, null);
 
 		CompilationUnit astRoot= getASTRoot(cu);
-		ArrayList<IJavaCompletionProposal> proposals= collectCorrections(cu, astRoot, 2, null);
+		ArrayList<IJavaCompletionProposal> proposals= collectCorrections(cu, astRoot, 1, null);
 		assertCorrectLabels(proposals);
 		assertNumberOfProposals(proposals, 3);
 
@@ -3510,6 +3510,42 @@ public class QuickFixTest1d8 extends QuickFixTest {
 				""";
 
 		assertExpectedExistInProposals(proposals, new String[] {expected1});
+	}
+
+	@Test
+	public void testIssue2764() throws Exception {
+		Hashtable<String, String> options = JavaCore.getOptions();
+		options.put(JavaCore.COMPILER_PB_DEPRECATION, CompilerOptions.WARNING);
+		JavaCore.setOptions(options);
+		IPackageFragment pack2= fSourceFolder.createPackageFragment("test1", false, null);
+
+		String str1= """
+			package test1;
+
+			@Deprecated
+			public enum E {
+				BAR
+			}
+			""";
+		ICompilationUnit cu= pack2.createCompilationUnit("E.java", str1, false, null);
+
+		CompilationUnit astRoot= getASTRoot(cu);
+		ArrayList<IJavaCompletionProposal> proposals= collectCorrections(cu, astRoot, 1, null);
+		assertCorrectLabels(proposals);
+		assertNumberOfProposals(proposals, 2);
+
+		String expected1= """
+			package test1;
+
+			@Deprecated
+			public enum E {
+				@Deprecated
+			    BAR
+			}
+			""";
+
+		assertExpectedExistInProposals(proposals, new String[] {expected1});
+
 	}
 
 }

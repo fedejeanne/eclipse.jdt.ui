@@ -527,7 +527,8 @@ public class CompilationUnitEditor extends JavaEditor implements IJavaReconcilin
 				}
 
 				ITypedRegion partition= TextUtilities.getPartition(document, IJavaPartitions.JAVA_PARTITIONING, offset, true);
-				if (!IDocument.DEFAULT_CONTENT_TYPE.equals(partition.getType()) && !IJavaPartitions.JAVA_MARKDOWN_COMMENT.equals(partition.getType()))
+				// Markdown checking is not required since Markdown should behave the same as Javadoc
+				if (!IDocument.DEFAULT_CONTENT_TYPE.equals(partition.getType()))
 					return;
 				if (!validateEditorInputState())
 					return;
@@ -1462,7 +1463,7 @@ public class CompilationUnitEditor extends JavaEditor implements IJavaReconcilin
 		SourceViewerConfiguration config= getSourceViewerConfiguration();
 		if (config != null && sourceViewer instanceof ITextViewerExtension7) {
 			int tabWidth= config.getTabWidth(sourceViewer);
-			TabsToSpacesConverter tabToSpacesConverter= new TabsToSpacesConverter();
+			TabsToSpacesConverter tabToSpacesConverter= new JavaTabsToSpacesConverter();
 			tabToSpacesConverter.setNumberOfSpacesPerTab(tabWidth);
 			tabToSpacesConverter.setDeleteSpacesAsTab(isSpacesAsTabsDeletionEnabled());
 			IDocumentProvider provider= getDocumentProvider();

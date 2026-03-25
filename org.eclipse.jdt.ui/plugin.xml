@@ -1190,9 +1190,14 @@
             class="org.eclipse.jdt.internal.ui.javaeditor.CompilationUnitDocumentProvider"/>
    </extension>
 
-   <extension
-         point="org.eclipse.ui.themes">
-        <themeElementCategory label="%javaPresentation.label" id="org.eclipse.jdt.ui.presentation"/>
+   <extension point="org.eclipse.ui.themes">
+        <themeElementCategory 
+        	label="%javaPresentation.label" 
+        	id="org.eclipse.jdt.ui.presentation">
+         	<description>
+            	%JavaTheme.description
+         	</description>
+        </themeElementCategory>
       <fontDefinition
             label="%javaEditorFontDefiniton.label"
             defaultsTo="org.eclipse.jface.textfont"
@@ -2759,6 +2764,13 @@
                id="org.eclipse.jdt.ui.actions.ConvertAnonymousToNested">
          </action>
          <action
+               definitionId="org.eclipse.jdt.ui.edit.text.java.convert.class.to.record"
+               label="%Refactoring.convertClassToRecordAction.label"
+               retarget="true"
+               menubarPath="org.eclipse.jdt.ui.refactoring.menu/reorgGroup2"
+               id="org.eclipse.jdt.ui.actions.ConvertClassToRecord">
+         </action>
+         <action
                definitionId="org.eclipse.jdt.ui.edit.text.java.promote.local.variable"
                label="%Refactoring.convertLocalToFieldAction.label"
                retarget="true"
@@ -4096,6 +4108,12 @@
             description="%ActionDefinition.convertAnonymousToNested.description"
             categoryId="org.eclipse.jdt.ui.category.refactoring"
             id="org.eclipse.jdt.ui.edit.text.java.convert.anonymous.to.nested">
+      </command>
+      <command
+            name="%ActionDefinition.convertClassToRecord.name"
+            description="%ActionDefinition.convertClassToRecord.description"
+            categoryId="org.eclipse.jdt.ui.category.refactoring"
+            id="org.eclipse.jdt.ui.edit.text.java.convert.class.to.record">
       </command>
       <command
             name="%ActionDefinition.convertNestedToTopLevel.name"
@@ -7114,7 +7132,7 @@
             runAfter="org.eclipse.jdt.ui.cleanup.code_style">
       </cleanUp>
       <cleanUp
-            class="org.eclipse.jdt.internal.ui.fix.ConvertLoopCleanUp"
+            class="org.eclipse.jdt.internal.ui.fix.ConvertLoopCleanUpCore"
             id="org.eclipse.jdt.ui.cleanup.loop"
             runAfter="org.eclipse.jdt.ui.cleanup.control_statements">
       </cleanUp>
@@ -7128,7 +7146,7 @@
             runAfter="org.eclipse.jdt.ui.cleanup.toolscleanup">
       </cleanUp>
       <cleanUp
-            class="org.eclipse.jdt.internal.ui.fix.AddAllCleanUp"
+            class="org.eclipse.jdt.internal.ui.fix.AddAllCleanUpCore"
             id="org.eclipse.jdt.ui.cleanup.add_all"
             runAfter="org.eclipse.jdt.ui.cleanup.switch">
       </cleanUp>
@@ -7163,7 +7181,7 @@
             runAfter="org.eclipse.jdt.ui.cleanup.reduce_indentation">
       </cleanUp>
       <cleanUp
-            class="org.eclipse.jdt.internal.ui.fix.ExtractIncrementCleanUp"
+            class="org.eclipse.jdt.internal.ui.fix.ExtractIncrementCleanUpCore"
             id="org.eclipse.jdt.ui.cleanup.extract_increment"
             runAfter="org.eclipse.jdt.ui.cleanup.expressions">
       </cleanUp>
@@ -7188,7 +7206,7 @@
             runAfter="org.eclipse.jdt.ui.cleanup.number_suffix">
       </cleanUp>
       <cleanUp
-            class="org.eclipse.jdt.internal.ui.fix.BreakLoopCleanUp"
+            class="org.eclipse.jdt.internal.ui.fix.BreakLoopCleanUpCore"
             id="org.eclipse.jdt.ui.cleanup.break_loop"
             runAfter="org.eclipse.jdt.ui.cleanup.single_used_field">
       </cleanUp>
@@ -7253,7 +7271,7 @@
             runAfter="org.eclipse.jdt.ui.cleanup.primitive_serialization">
       </cleanUp>
       <cleanUp
-            class="org.eclipse.jdt.internal.ui.fix.PatternCleanUp"
+            class="org.eclipse.jdt.internal.ui.fix.PatternCleanUpCore"
             id="org.eclipse.jdt.ui.cleanup.precompile_regex"
             runAfter="org.eclipse.jdt.ui.cleanup.primitive_rather_than_wrapper">
       </cleanUp>
@@ -7263,7 +7281,7 @@
             runAfter="org.eclipse.jdt.ui.cleanup.precompile_regex">
       </cleanUp>
       <cleanUp
-            class="org.eclipse.jdt.internal.ui.fix.BooleanLiteralCleanUp"
+            class="org.eclipse.jdt.internal.ui.fix.BooleanLiteralCleanUpCore"
             id="org.eclipse.jdt.ui.cleanup.boolean_literal"
             runAfter="org.eclipse.jdt.ui.cleanup.no_string_creation">
       </cleanUp>
@@ -7293,7 +7311,7 @@
             runAfter="org.eclipse.jdt.ui.cleanup.unnecessary_code">
       </cleanUp>
       <cleanUp
-            class="org.eclipse.jdt.internal.ui.fix.EmbeddedIfCleanUp"
+            class="org.eclipse.jdt.internal.ui.fix.EmbeddedIfCleanUpCore"
             id="org.eclipse.jdt.ui.cleanup.embedded_if"
             runAfter="org.eclipse.jdt.ui.cleanup.unnecessary_modifiers">
       </cleanUp>
@@ -7338,12 +7356,12 @@
             runAfter="org.eclipse.jdt.ui.cleanup.useless_continue">
       </cleanUp>
       <cleanUp
-            class="org.eclipse.jdt.internal.ui.fix.StringCleanUp"
+            class="org.eclipse.jdt.internal.ui.fix.StringCleanUpCore"
             id="org.eclipse.jdt.ui.cleanup.strings"
             runAfter="org.eclipse.jdt.ui.cleanup.unlooped_while">
       </cleanUp>
       <cleanUp
-            class="org.eclipse.jdt.internal.ui.fix.UnimplementedCodeCleanUp"
+            class="org.eclipse.jdt.internal.ui.fix.UnimplementedCodeCleanUpCore"
             id="org.eclipse.jdt.ui.cleanup.unimplemented_code"
             runAfter="org.eclipse.jdt.ui.cleanup.strings">
       </cleanUp>
@@ -7368,12 +7386,12 @@
             runAfter="org.eclipse.jdt.ui.cleanup.format">
       </cleanUp>
       <cleanUp
-            class="org.eclipse.jdt.internal.ui.fix.ArraysFillCleanUp"
+            class="org.eclipse.jdt.internal.ui.fix.ArraysFillCleanUpCore"
             id="org.eclipse.jdt.ui.cleanup.arrays_fill"
             runAfter="org.eclipse.jdt.ui.cleanup.substring">
       </cleanUp>
       <cleanUp
-            class="org.eclipse.jdt.internal.ui.fix.EvaluateNullableCleanUp"
+            class="org.eclipse.jdt.internal.ui.fix.EvaluateNullableCleanUpCore"
             id="org.eclipse.jdt.ui.cleanup.evaluate_nullable"
             runAfter="org.eclipse.jdt.ui.cleanup.arrays_fill">
       </cleanUp>
@@ -7388,7 +7406,7 @@
             runAfter="org.eclipse.jdt.ui.cleanup.push_down_negation">
       </cleanUp>
       <cleanUp
-            class="org.eclipse.jdt.internal.ui.fix.DoubleNegationCleanUp"
+            class="org.eclipse.jdt.internal.ui.fix.DoubleNegationCleanUpCore"
             id="org.eclipse.jdt.ui.cleanup.double_negation"
             runAfter="org.eclipse.jdt.ui.boolean_value_rather_than_comparison">
       </cleanUp>
@@ -7418,7 +7436,7 @@
             runAfter="org.eclipse.jdt.ui.cleanup.unreachable_block">
       </cleanUp>
       <cleanUp
-            class="org.eclipse.jdt.internal.ui.fix.CollectionCloningCleanUp"
+            class="org.eclipse.jdt.internal.ui.fix.CollectionCloningCleanUpCore"
             id="org.eclipse.jdt.ui.cleanup.collection_cloning"
             runAfter="org.eclipse.jdt.ui.cleanup.use_directly_map_method">
       </cleanUp>
@@ -7438,7 +7456,7 @@
             runAfter="org.eclipse.jdt.ui.cleanup.invert_equals">
       </cleanUp>
       <cleanUp
-            class="org.eclipse.jdt.internal.ui.fix.BitwiseConditionalExpressionCleanup"
+            class="org.eclipse.jdt.internal.ui.fix.BitwiseConditionalExpressionCleanupCore"
             id="org.eclipse.jdt.ui.cleanup.bitwise_conditional_expression"
             runAfter="org.eclipse.jdt.ui.cleanup.standard_comparison">
       </cleanUp>
@@ -7463,7 +7481,7 @@
             runAfter="org.eclipse.jdt.ui.cleanup.strictly_equal_or_different">
       </cleanUp>
       <cleanUp
-            class="org.eclipse.jdt.internal.ui.fix.ControlFlowMergeCleanUp"
+            class="org.eclipse.jdt.internal.ui.fix.ControlFlowMergeCleanUpCore"
             id="org.eclipse.jdt.ui.cleanup.controlflow_merge"
             runAfter="org.eclipse.jdt.ui.cleanup.merge_conditional_blocks">
       </cleanUp>
@@ -7518,7 +7536,7 @@
             runAfter="org.eclipse.jdt.ui.cleanup.lambda">
       </cleanUp>
       <cleanUp
-            class="org.eclipse.jdt.internal.ui.fix.ComparingOnCriteriaCleanUp"
+            class="org.eclipse.jdt.internal.ui.fix.ComparingOnCriteriaCleanUpCore"
             id="org.eclipse.jdt.ui.cleanup.comparing_on_criteria"
             runAfter="org.eclipse.jdt.ui.cleanup.lambda_and_method_ref">
       </cleanUp>
@@ -7538,12 +7556,12 @@
             runAfter="org.eclipse.jdt.ui.cleanup.try_with_resource">
       </cleanUp>
       <cleanUp
-            class="org.eclipse.jdt.internal.ui.fix.ConstantsForSystemPropertyCleanUp"
+            class="org.eclipse.jdt.internal.ui.fix.ConstantsForSystemPropertyCleanUpCore"
             id="org.eclipse.jdt.ui.cleanup.systemproperty"
             runAfter="org.eclipse.jdt.ui.cleanup.multi_catch">
       </cleanUp>
       <cleanUp
-            class="org.eclipse.jdt.internal.ui.fix.TypeParametersCleanUp"
+            class="org.eclipse.jdt.internal.ui.fix.TypeParametersCleanUpCore"
             id="org.eclipse.jdt.ui.cleanup.type_parameters"
             runAfter="org.eclipse.jdt.ui.cleanup.systemproperty">
       </cleanUp>
@@ -7563,7 +7581,7 @@
             runAfter="org.eclipse.jdt.ui.cleanup.objects_equals">
       </cleanUp>
       <cleanUp
-            class="org.eclipse.jdt.internal.ui.fix.AutoboxingCleanUp"
+            class="org.eclipse.jdt.internal.ui.fix.AutoboxingCleanUpCore"
             id="org.eclipse.jdt.ui.cleanup.autoboxing"
             runAfter="org.eclipse.jdt.ui.cleanup.variables">
       </cleanUp>
@@ -7578,9 +7596,14 @@
             runAfter="org.eclipse.jdt.ui.cleanup.unboxing">
       </cleanUp>
       <cleanUp
+      		class="org.eclipse.jdt.internal.ui.fix.ModuleImportsCleanUpCore"
+      		id="org.eclipse.jdt.ui.cleanup.module_imports"
+      		runAfter="org.eclipse.jdt.ui.cleanup.rename_unused">
+      </cleanUp>
+      <cleanUp
             class="org.eclipse.jdt.internal.ui.fix.UnusedSuppressWarningsCleanUp"
             id="org.eclipse.jdt.ui.cleanup.remove_unused_suppress_warnings"
-            runAfter="org.eclipse.jdt.ui.cleanup.rename_unused">
+            runAfter="org.eclipse.jdt.ui.cleanup.module_imports">
       </cleanUp>
    </extension>
 

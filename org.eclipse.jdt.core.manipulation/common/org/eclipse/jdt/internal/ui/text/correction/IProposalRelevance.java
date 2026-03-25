@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2012, 2025 IBM Corporation and others.
+ * Copyright (c) 2012, 2026 IBM Corporation and others.
  *
  * This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License 2.0
@@ -108,6 +108,7 @@ public interface IProposalRelevance {
 	int DECLARE_SEALED_AS_DIRECT_SUPER_TYPE= 7;
 
 	int REMOVE_SEMICOLON= 6;
+	int CONVERT_TO_RECORD= 6;
 	int CREATE_METHOD_IN_SUPER= 6;
 	int QUALIFY_LHS= 6;
 	int CHANGE_PROJECT_COMPLIANCE= 6;
@@ -199,6 +200,7 @@ public interface IProposalRelevance {
 	int QUALIFY_RHS= 5;
 	int ADD_CONSTRUCTOR_FROM_SUPER_CLASS= 5;
 	int GETTER_SETTER_UNQUALIFIED_FIELD_ACCESS= 5;
+	int REPLACE_QUALIFIED_NAME= 5;
 	int RENAME_TYPE= 5;
 	int TYPE_ARGUMENTS_FROM_CONTEXT= 5;
 	int REMOVE_REDUNDANT_NULLNESS_ANNOTATION= 5;

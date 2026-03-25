@@ -1,5 +1,5 @@
 /********************,***********************************************************
- * Copyright (c) 2020 2023 IBM Corporation and others.
+ * Copyright (c) 2020 2026 IBM Corporation and others.
  *
  * This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License 2.0
@@ -39,7 +39,7 @@ import org.eclipse.jdt.ui.text.java.correction.CUCorrectionProposal;
 public class AssistQuickFixTest14 extends QuickFixTest {
 
 	@Rule
-    public ProjectTestSetup projectSetup = new Java14ProjectTestSetup(true);
+    public ProjectTestSetup projectSetup = new Java14ProjectTestSetup(false);
 
 	private IJavaProject fJProject1;
 
@@ -72,33 +72,34 @@ public class AssistQuickFixTest14 extends QuickFixTest {
 		def.createCompilationUnit("module-info.java", str, false, null);
 
 		IPackageFragment pack= fSourceFolder.createPackageFragment("test", false, null);
-		StringBuilder buf= new StringBuilder();
-		buf.append("package test;\n");
-		buf.append("public class Cls {\n");
-		buf.append("	public int foo(Day day) {\n");
-		buf.append("		// return variable\n");
-		buf.append("		int i;\n");
-		buf.append("		switch (day) {\n");
-		buf.append("			case SATURDAY:\n");
-		buf.append("			case SUNDAY: i = 5; break;\n");
-		buf.append("			case MONDAY:\n");
-		buf.append("			case TUESDAY, WEDNESDAY: i = 7; break;\n");
-		buf.append("			case THURSDAY:\n");
-		buf.append("			case FRIDAY: i = 14; break;\n");
-		buf.append("			default :\n");
-		buf.append("				i = 22;\n");
-		buf.append("				break;\n");
-		buf.append("		}\n");
-		buf.append("		return i;\n");
-		buf.append("	}\n");
-		buf.append("}\n");
-		buf.append("\n");
-		buf.append("enum Day {\n");
-		buf.append("    MONDAY, TUESDAY, WEDNESDAY, THURSDAY, FRIDAY, SATURDAY, SUNDAY;\n");
-		buf.append("}\n");
-		ICompilationUnit cu= pack.createCompilationUnit("Cls.java", buf.toString(), false, null);
+		String str1= """
+			package test;
+			public class Cls {
+				public int foo(Day day) {
+					// return variable
+					int i;
+					switch (day) {
+						case SATURDAY:
+						case SUNDAY: i = 5; break;
+						case MONDAY:
+						case TUESDAY, WEDNESDAY: i = 7; break;
+						case THURSDAY:
+						case FRIDAY: i = 14; break;
+						default :
+							i = 22;
+							break;
+					}
+					return i;
+				}
+			}
 
-		int index= buf.indexOf("\t\tswitch (day) {");
+			enum Day {
+			    MONDAY, TUESDAY, WEDNESDAY, THURSDAY, FRIDAY, SATURDAY, SUNDAY;
+			}
+			""";
+		ICompilationUnit cu= pack.createCompilationUnit("Cls.java", str1, false, null);
+
+		int index= str1.indexOf("\t\tswitch (day) {");
 		IInvocationContext ctx= getCorrectionContext(cu, index, 16);
 		assertNoErrors(ctx);
 		ArrayList<IJavaCompletionProposal> proposals= collectAssists(ctx, false);
@@ -120,7 +121,7 @@ public class AssistQuickFixTest14 extends QuickFixTest {
 					return i;
 				}
 			}
-			
+
 			enum Day {
 			    MONDAY, TUESDAY, WEDNESDAY, THURSDAY, FRIDAY, SATURDAY, SUNDAY;
 			}
@@ -144,34 +145,35 @@ public class AssistQuickFixTest14 extends QuickFixTest {
 		def.createCompilationUnit("module-info.java", str, false, null);
 
 		IPackageFragment pack= fSourceFolder.createPackageFragment("test", false, null);
-		StringBuilder buf= new StringBuilder();
-		buf.append("package test;\n");
-		buf.append("public class Cls {\n");
-		buf.append("	public int foo(Day day) {\n");
-		buf.append("		// return variable\n");
-		buf.append("		int i;\n");
-		buf.append("		int j = 4;\n");
-		buf.append("		// logic comment\n");
-		buf.append("		switch (day) {\n");
-		buf.append("			case SATURDAY:\n");
-		buf.append("			case SUNDAY: i = 5; break;\n");
-		buf.append("			case MONDAY:\n");
-		buf.append("			case TUESDAY:\n");
-		buf.append("			case WEDNESDAY: System.out.println(\"here\"); i = 7; break;\n");
-		buf.append("			case THURSDAY:\n");
-		buf.append("			case FRIDAY: i = 14; break;\n");
-		buf.append("			default: i = 22; break;\n");
-		buf.append("		}\n");
-		buf.append("		return i;\n");
-		buf.append("	}\n");
-		buf.append("}\n");
-		buf.append("\n");
-		buf.append("enum Day {\n");
-		buf.append("    MONDAY, TUESDAY, WEDNESDAY, THURSDAY, FRIDAY, SATURDAY, SUNDAY;\n");
-		buf.append("}\n");
-		ICompilationUnit cu= pack.createCompilationUnit("Cls.java", buf.toString(), false, null);
+		String str1= """
+			package test;
+			public class Cls {
+				public int foo(Day day) {
+					// return variable
+					int i;
+					int j = 4;
+					// logic comment
+					switch (day) {
+						case SATURDAY:
+						case SUNDAY: i = 5; break;
+						case MONDAY:
+						case TUESDAY:
+						case WEDNESDAY: System.out.println("here"); i = 7; break;
+						case THURSDAY:
+						case FRIDAY: i = 14; break;
+						default: i = 22; break;
+					}
+					return i;
+				}
+			}
 
-		int index= buf.indexOf("switch");
+			enum Day {
+			    MONDAY, TUESDAY, WEDNESDAY, THURSDAY, FRIDAY, SATURDAY, SUNDAY;
+			}
+			""";
+		ICompilationUnit cu= pack.createCompilationUnit("Cls.java", str1, false, null);
+
+		int index= str1.indexOf("switch");
 		IInvocationContext ctx= getCorrectionContext(cu, index, 0);
 		assertNoErrors(ctx);
 		ArrayList<IJavaCompletionProposal> proposals= collectAssists(ctx, false);
@@ -199,7 +201,7 @@ public class AssistQuickFixTest14 extends QuickFixTest {
 					return i;
 				}
 			}
-			
+
 			enum Day {
 			    MONDAY, TUESDAY, WEDNESDAY, THURSDAY, FRIDAY, SATURDAY, SUNDAY;
 			}
@@ -223,33 +225,34 @@ public class AssistQuickFixTest14 extends QuickFixTest {
 		def.createCompilationUnit("module-info.java", str, false, null);
 
 		IPackageFragment pack= fSourceFolder.createPackageFragment("test", false, null);
-		StringBuilder buf= new StringBuilder();
-		buf.append("package test;\n");
-		buf.append("public class Cls {\n");
-		buf.append("	static int i;\n");
-		buf.append("	static {\n");
-		buf.append("		// var comment\n");
-		buf.append("		int j = 4;\n");
-		buf.append("		// logic comment\n");
-		buf.append("		switch (j) {\n");
-		buf.append("			case 0:\n");
-		buf.append("			case 1: i = 5; break;\n");
-		buf.append("			case 2:\n");
-		buf.append("			case 3:\n");
-		buf.append("			case 4:\n");
-		buf.append("                System.out.println(\"here\"); // comment 1\n");
-		buf.append("                // comment 2\n");
-		buf.append("                i = 7; // comment 3\n");
-		buf.append("                break;\n");
-		buf.append("			case 5:\n");
-		buf.append("			case 6: i = 14; break;\n");
-		buf.append("			default: i = 22; break;\n");
-		buf.append("		}\n");
-		buf.append("	}\n");
-		buf.append("}\n");
-		ICompilationUnit cu= pack.createCompilationUnit("Cls.java", buf.toString(), false, null);
+		String str1= """
+			package test;
+			public class Cls {
+				static int i;
+				static {
+					// var comment
+					int j = 4;
+					// logic comment
+					switch (j) {
+						case 0:
+						case 1: i = 5; break;
+						case 2:
+						case 3:
+						case 4:
+			                System.out.println("here"); // comment 1
+			                // comment 2
+			                i = 7; // comment 3
+			                break;
+						case 5:
+						case 6: i = 14; break;
+						default: i = 22; break;
+					}
+				}
+			}
+			""";
+		ICompilationUnit cu= pack.createCompilationUnit("Cls.java", str1, false, null);
 
-		int index= buf.indexOf("switch");
+		int index= str1.indexOf("switch");
 		IInvocationContext ctx= getCorrectionContext(cu, index, 0);
 		assertNoErrors(ctx);
 		ArrayList<IJavaCompletionProposal> proposals= collectAssists(ctx, false);
@@ -297,29 +300,30 @@ public class AssistQuickFixTest14 extends QuickFixTest {
 		def.createCompilationUnit("module-info.java", str, false, null);
 
 		IPackageFragment pack= fSourceFolder.createPackageFragment("test", false, null);
-		StringBuilder buf= new StringBuilder();
-		buf.append("package test;\n");
-		buf.append("public class Cls {\n");
-		buf.append("	public int foo(int j, int k) {\n");
-		buf.append("		// var comment\n");
-		buf.append("		int i;\n");
-		buf.append("		// logic comment\n");
-		buf.append("		switch (j) {\n");
-		buf.append("			case 0:\n");
-		buf.append("			case 1: i = k > 7 ? 5 : 6; break;\n");
-		buf.append("			case 2:\n");
-		buf.append("			case 3:\n");
-		buf.append("			case 4: System.out.println(\"here\"); i = 7; break;\n");
-		buf.append("			case 5:\n");
-		buf.append("			case 6: i = 14; break;\n");
-		buf.append("			default: i = 22; break;\n");
-		buf.append("		}\n");
-		buf.append("		return i;\n");
-		buf.append("	}\n");
-		buf.append("}\n");
-		ICompilationUnit cu= pack.createCompilationUnit("Cls.java", buf.toString(), false, null);
+		String str1= """
+			package test;
+			public class Cls {
+				public int foo(int j, int k) {
+					// var comment
+					int i;
+					// logic comment
+					switch (j) {
+						case 0:
+						case 1: i = k > 7 ? 5 : 6; break;
+						case 2:
+						case 3:
+						case 4: System.out.println("here"); i = 7; break;
+						case 5:
+						case 6: i = 14; break;
+						default: i = 22; break;
+					}
+					return i;
+				}
+			}
+			""";
+		ICompilationUnit cu= pack.createCompilationUnit("Cls.java", str1, false, null);
 
-		int index= buf.indexOf("switch");
+		int index= str1.indexOf("switch");
 		IInvocationContext ctx= getCorrectionContext(cu, index, 0);
 		assertNoErrors(ctx);
 		ArrayList<IJavaCompletionProposal> proposals= collectAssists(ctx, false);
@@ -364,21 +368,22 @@ public class AssistQuickFixTest14 extends QuickFixTest {
 		def.createCompilationUnit("module-info.java", str, false, null);
 
 		IPackageFragment pack= fSourceFolder.createPackageFragment("test", false, null);
-		StringBuilder buf= new StringBuilder();
-		buf.append("package test;\n");
-		buf.append("public class Cls {\n");
-		buf.append("    public int foo(int i) {\n");
-		buf.append("        switch (i) {\n");
-		buf.append("        case 0: // comment\n");
-		buf.append("            return 0;\n");
-		buf.append("        default:\n");
-		buf.append("            return 1;\n");
-		buf.append("        }\n");
-		buf.append("    }\n");
-		buf.append("}\n");
-		ICompilationUnit cu= pack.createCompilationUnit("Cls.java", buf.toString(), false, null);
+		String str1= """
+			package test;
+			public class Cls {
+			    public int foo(int i) {
+			        switch (i) {
+			        case 0: // comment
+			            return 0;
+			        default:
+			            return 1;
+			        }
+			    }
+			}
+			""";
+		ICompilationUnit cu= pack.createCompilationUnit("Cls.java", str1, false, null);
 
-		int index= buf.indexOf("switch");
+		int index= str1.indexOf("switch");
 		IInvocationContext ctx= getCorrectionContext(cu, index, 0);
 		assertNoErrors(ctx);
 		ArrayList<IJavaCompletionProposal> proposals= collectAssists(ctx, false);
@@ -418,29 +423,30 @@ public class AssistQuickFixTest14 extends QuickFixTest {
 		def.createCompilationUnit("module-info.java", str, false, null);
 
 		IPackageFragment pack= fSourceFolder.createPackageFragment("test", false, null);
-		StringBuilder buf= new StringBuilder();
-		buf.append("package test;\n");
-		buf.append("public class Cls {\n");
-		buf.append("	static int i;\n");
-		buf.append("	static {\n");
-		buf.append("		// var comment\n");
-		buf.append("		int j = 4;\n");
-		buf.append("		// logic comment\n");
-		buf.append("		switch (j) {\n");
-		buf.append("			case 0: break; // no statements\n");
-		buf.append("			case 1: i = 5; break;\n");
-		buf.append("			case 2:\n");
-		buf.append("			case 3:\n");
-		buf.append("			case 4: System.out.println(\"here\"); i = 7; break;\n");
-		buf.append("			case 5:\n");
-		buf.append("			case 6: i = 14; break;\n");
-		buf.append("			default: i = 22; break;\n");
-		buf.append("		}\n");
-		buf.append("	}\n");
-		buf.append("}\n");
-		ICompilationUnit cu= pack.createCompilationUnit("Cls.java", buf.toString(), false, null);
+		String str1= """
+			package test;
+			public class Cls {
+				static int i;
+				static {
+					// var comment
+					int j = 4;
+					// logic comment
+					switch (j) {
+						case 0: break; // no statements
+						case 1: i = 5; break;
+						case 2:
+						case 3:
+						case 4: System.out.println("here"); i = 7; break;
+						case 5:
+						case 6: i = 14; break;
+						default: i = 22; break;
+					}
+				}
+			}
+			""";
+		ICompilationUnit cu= pack.createCompilationUnit("Cls.java", str1, false, null);
 
-		int index= buf.indexOf("switch");
+		int index= str1.indexOf("switch");
 		IInvocationContext ctx= getCorrectionContext(cu, index, 0);
 		assertNoErrors(ctx);
 		ArrayList<IJavaCompletionProposal> proposals= collectAssists(ctx, false);
@@ -463,34 +469,254 @@ public class AssistQuickFixTest14 extends QuickFixTest {
 		def.createCompilationUnit("module-info.java", str, false, null);
 
 		IPackageFragment pack= fSourceFolder.createPackageFragment("test", false, null);
-		StringBuilder buf= new StringBuilder();
-		buf.append("package test;\n");
-		buf.append("public class Cls {\n");
-		buf.append("	public int foo(int k) {\n");
-		buf.append("		int i;\n");
-		buf.append("		// var comment\n");
-		buf.append("		int j = 4;\n");
-		buf.append("		// logic comment\n");
-		buf.append("		switch (j) {\n");
-		buf.append("			case 0: System.out.println(\"here\"); // fall-through with statements\n");
-		buf.append("			case 1: i = 5; break;\n");
-		buf.append("			case 2:\n");
-		buf.append("			case 3:\n");
-		buf.append("			case 4: System.out.println(\"here\"); i = 7; break;\n");
-		buf.append("			case 5:\n");
-		buf.append("			case 6: i = 14; break;\n");
-		buf.append("			default: i = 22; break;\n");
-		buf.append("		}\n");
-		buf.append("		return i;\n");
-		buf.append("	}\n");
-		buf.append("}\n");
-		ICompilationUnit cu= pack.createCompilationUnit("Cls.java", buf.toString(), false, null);
+		String str1= """
+			package test;
+			public class Cls {
+				public int foo(int k) {
+					int i;
+					// var comment
+					int j = 4;
+					// logic comment
+					switch (j) {
+						case 0: System.out.println("here"); // fall-through with statements
+						case 1: i = 5; break;
+						case 2:
+						case 3:
+						case 4: System.out.println("here"); i = 7; break;
+						case 5:
+						case 6: i = 14; break;
+						default: i = 22; break;
+					}
+					return i;
+				}
+			}
+			""";
+		ICompilationUnit cu= pack.createCompilationUnit("Cls.java", str1, false, null);
 
-		int index= buf.indexOf("switch");
+		int index= str1.indexOf("switch");
 		IInvocationContext ctx= getCorrectionContext(cu, index, 0);
 		assertNoErrors(ctx);
 		ArrayList<IJavaCompletionProposal> proposals= collectAssists(ctx, false);
 		assertProposalDoesNotExist(proposals, FixMessages.SwitchExpressionsFix_convert_to_switch_expression);
+
+	}
+
+	@Test
+	public void testConvertToSwitchExpression6() throws Exception {
+		fJProject1= JavaProjectHelper.createJavaProject("TestProject1", "bin");
+		fJProject1.setRawClasspath(projectSetup.getDefaultClasspath(), null);
+		JavaProjectHelper.set14CompilerOptions(fJProject1, false);
+		fSourceFolder= JavaProjectHelper.addSourceContainer(fJProject1, "src");
+
+		String str= """
+			module test {
+			}
+			""";
+		IPackageFragment def= fSourceFolder.createPackageFragment("", false, null);
+		def.createCompilationUnit("module-info.java", str, false, null);
+
+		IPackageFragment pack= fSourceFolder.createPackageFragment("test", false, null);
+		String str1= """
+			package test;
+			public class Cls {
+				public int foo(int k) {
+					int i;
+					// var comment
+					int j = 4;
+					// logic comment
+					switch (j) {
+						case 0:
+						case 1: i = 5; return i; // return statement
+						case 2:
+						case 3:
+						case 4: System.out.println("here"); i = 7; break;
+						case 5:
+						case 6: i = 14; break;
+						default: i = 22; break;
+					}
+					return i;
+				}
+			}
+			""";
+		ICompilationUnit cu= pack.createCompilationUnit("Cls.java", str1, false, null);
+
+		int index= str1.indexOf("switch");
+		IInvocationContext ctx= getCorrectionContext(cu, index, 0);
+		assertNoErrors(ctx);
+		ArrayList<IJavaCompletionProposal> proposals= collectAssists(ctx, false);
+
+		CUCorrectionProposal proposal= (CUCorrectionProposal) proposals.get(0);
+		String preview= getPreviewContent(proposal);
+
+		String expected= """
+			package test;
+			public class Cls {
+				public int foo(int k) {
+					int i;
+					// var comment
+					int j = 4;
+					// logic comment
+					switch (j) {
+						case 0, 1 -> {
+							i = 5;
+							return i; // return statement
+						}
+						case 2, 3, 4 -> {
+							System.out.println("here");
+							i = 7;
+						}
+						case 5, 6 -> i = 14;
+						default -> i = 22;
+					}
+					return i;
+				}
+			}
+			""";
+
+		assertEqualStringsIgnoreOrder(new String[] { preview }, new String[] { expected });
+
+	}
+
+	@Test
+	public void testConvertToSwitchExpression7() throws Exception {
+		fJProject1= JavaProjectHelper.createJavaProject("TestProject1", "bin");
+		fJProject1.setRawClasspath(projectSetup.getDefaultClasspath(), null);
+		JavaProjectHelper.set14CompilerOptions(fJProject1, false);
+		fSourceFolder= JavaProjectHelper.addSourceContainer(fJProject1, "src");
+
+		String str= """
+			module test {
+			}
+			""";
+		IPackageFragment def= fSourceFolder.createPackageFragment("", false, null);
+		def.createCompilationUnit("module-info.java", str, false, null);
+
+		IPackageFragment pack= fSourceFolder.createPackageFragment("test", false, null);
+		String str1= """
+			package test;
+			public class Cls {
+				public int foo(int k) {
+					int i;
+					// var comment
+					int j = 4;
+					// logic comment
+					switch (j) {
+						case 0:
+						case 1: i = 5; j = 5; break; // last statement not common assignment
+						case 2:
+						case 3:
+						case 4: System.out.println("here"); i = 7; break;
+						case 5:
+						case 6: i = 14; break;
+						default: i = 22; break;
+					}
+					return i;
+				}
+			}
+			""";
+		ICompilationUnit cu= pack.createCompilationUnit("Cls.java", str1, false, null);
+
+		int index= str1.indexOf("switch");
+		IInvocationContext ctx= getCorrectionContext(cu, index, 0);
+		assertNoErrors(ctx);
+		ArrayList<IJavaCompletionProposal> proposals= collectAssists(ctx, false);
+		CUCorrectionProposal proposal= (CUCorrectionProposal) proposals.get(0);
+		String preview= getPreviewContent(proposal);
+
+		String expected= """
+			package test;
+			public class Cls {
+				public int foo(int k) {
+					int i;
+					// var comment
+					int j = 4;
+					// logic comment
+					switch (j) {
+						case 0, 1 -> {
+							i = 5;
+							j = 5;
+						}
+						case 2, 3, 4 -> {
+							System.out.println("here");
+							i = 7;
+						}
+						case 5, 6 -> i = 14;
+						default -> i = 22;
+					}
+					return i;
+				}
+			}
+			""";
+
+		assertEqualStringsIgnoreOrder(new String[] { preview }, new String[] { expected });
+
+	}
+
+	@Test
+	public void testConvertToSwitchExpression8() throws Exception {
+		fJProject1= JavaProjectHelper.createJavaProject("TestProject1", "bin");
+		fJProject1.setRawClasspath(projectSetup.getDefaultClasspath(), null);
+		JavaProjectHelper.set14CompilerOptions(fJProject1, false);
+		fSourceFolder= JavaProjectHelper.addSourceContainer(fJProject1, "src");
+
+		String str= """
+			module test {
+			}
+			""";
+		IPackageFragment def= fSourceFolder.createPackageFragment("", false, null);
+		def.createCompilationUnit("module-info.java", str, false, null);
+
+		IPackageFragment pack= fSourceFolder.createPackageFragment("test", false, null);
+		String str1= """
+				package test;
+
+				public class Cls {
+				    public int foo(int j) {
+				        // return value
+				        int i = 0;
+				        switch (j) {
+				            case 1:
+				                i = 8; // value 8
+				                break; // can't refactor with no assignment to i
+				            case 2:
+				                i = 7; // value 7
+					            break;
+				            default:
+				                return -1; // invalid
+				        }
+				        return i;
+				    }
+				}
+				""";
+		ICompilationUnit cu= pack.createCompilationUnit("Cls.java", str1, false, null);
+
+		int index= str1.indexOf("switch");
+		IInvocationContext ctx= getCorrectionContext(cu, index, 0);
+		assertNoErrors(ctx);
+		ArrayList<IJavaCompletionProposal> proposals= collectAssists(ctx, false);
+		CUCorrectionProposal proposal= (CUCorrectionProposal) proposals.get(0);
+		String preview= getPreviewContent(proposal);
+
+		String expected= """
+				package test;
+
+				public class Cls {
+				    public int foo(int j) {
+				        // return value
+				        int i = 0;
+				        switch (j) {
+							case 1 -> i = 8; // value 8
+							case 2 -> i = 7; // value 7
+							default -> {
+								return -1; // invalid
+							}
+						}
+				        return i;
+				    }
+				}
+				""";
+
+		assertEqualStringsIgnoreOrder(new String[] { preview }, new String[] { expected });
 
 	}
 
@@ -509,39 +735,38 @@ public class AssistQuickFixTest14 extends QuickFixTest {
 		def.createCompilationUnit("module-info.java", str, false, null);
 
 		IPackageFragment pack= fSourceFolder.createPackageFragment("test", false, null);
-		StringBuilder buf= new StringBuilder();
-		buf.append("package test;\n");
-		buf.append("public class Cls {\n");
-		buf.append("	public int foo(int k) {\n");
-		buf.append("		int i;\n");
-		buf.append("		// var comment\n");
-		buf.append("		int j = 4;\n");
-		buf.append("		// logic comment\n");
-		buf.append("		switch (j) {\n");
-		buf.append("			case 0:\n");
-		buf.append("			case 1: i = 5; return i; // return statement\n");
-		buf.append("			case 2:\n");
-		buf.append("			case 3:\n");
-		buf.append("			case 4: System.out.println(\"here\"); i = 7; break;\n");
-		buf.append("			case 5:\n");
-		buf.append("			case 6: i = 14; break;\n");
-		buf.append("			default: i = 22; break;\n");
-		buf.append("		}\n");
-		buf.append("		return i;\n");
-		buf.append("	}\n");
-		buf.append("}\n");
-		ICompilationUnit cu= pack.createCompilationUnit("Cls.java", buf.toString(), false, null);
+		String str1= """
+			package test;
+			public class Cls {
+				public int foo(int k) {
+					int i;
+					// var comment
+					int j = 4;
+					// logic comment
+					switch (j) {
+						case 0:
+						case 1: i = 5; break;
+						case 2:
+						case 3:
+						case 4: System.out.println("here"); i = 7; break;
+						case 5:
+						case 6: i = 14; break;
+						// no default
+					}
+					return i;
+				}
+			}
+			""";
+		ICompilationUnit cu= pack.createCompilationUnit("Cls.java", str1, false, null);
 
-		int index= buf.indexOf("switch");
+		int index= str1.indexOf("switch");
 		IInvocationContext ctx= getCorrectionContext(cu, index, 0);
-		assertNoErrors(ctx);
 		ArrayList<IJavaCompletionProposal> proposals= collectAssists(ctx, false);
 		assertProposalDoesNotExist(proposals, FixMessages.SwitchExpressionsFix_convert_to_switch_expression);
-
 	}
 
 	@Test
-	public void testNoConvertToSwitchExpression4() throws Exception {
+	public void testNoConvertToSwitchExpression4() throws Exception { // https://github.com/eclipse-jdt/eclipse.jdt.ui/issues/2728
 		fJProject1= JavaProjectHelper.createJavaProject("TestProject1", "bin");
 		fJProject1.setRawClasspath(projectSetup.getDefaultClasspath(), null);
 		JavaProjectHelper.set14CompilerOptions(fJProject1, false);
@@ -555,80 +780,25 @@ public class AssistQuickFixTest14 extends QuickFixTest {
 		def.createCompilationUnit("module-info.java", str, false, null);
 
 		IPackageFragment pack= fSourceFolder.createPackageFragment("test", false, null);
-		StringBuilder buf= new StringBuilder();
-		buf.append("package test;\n");
-		buf.append("public class Cls {\n");
-		buf.append("	public int foo(int k) {\n");
-		buf.append("		int i;\n");
-		buf.append("		// var comment\n");
-		buf.append("		int j = 4;\n");
-		buf.append("		// logic comment\n");
-		buf.append("		switch (j) {\n");
-		buf.append("			case 0:\n");
-		buf.append("			case 1: i = 5; j = 5; break; // last statement not common assignment\n");
-		buf.append("			case 2:\n");
-		buf.append("			case 3:\n");
-		buf.append("			case 4: System.out.println(\"here\"); i = 7; break;\n");
-		buf.append("			case 5:\n");
-		buf.append("			case 6: i = 14; break;\n");
-		buf.append("			default: i = 22; break;\n");
-		buf.append("		}\n");
-		buf.append("		return i;\n");
-		buf.append("	}\n");
-		buf.append("}\n");
-		ICompilationUnit cu= pack.createCompilationUnit("Cls.java", buf.toString(), false, null);
-
-		int index= buf.indexOf("switch");
-		IInvocationContext ctx= getCorrectionContext(cu, index, 0);
-		assertNoErrors(ctx);
-		ArrayList<IJavaCompletionProposal> proposals= collectAssists(ctx, false);
-		assertProposalDoesNotExist(proposals, FixMessages.SwitchExpressionsFix_convert_to_switch_expression);
-
-	}
-
-	@Test
-	public void testNoConvertToSwitchExpression5() throws Exception {
-		fJProject1= JavaProjectHelper.createJavaProject("TestProject1", "bin");
-		fJProject1.setRawClasspath(projectSetup.getDefaultClasspath(), null);
-		JavaProjectHelper.set14CompilerOptions(fJProject1, false);
-		fSourceFolder= JavaProjectHelper.addSourceContainer(fJProject1, "src");
-
-		String str= """
-			module test {
+		String str1= """
+			package test;
+			public class Cls {
+			    public void f(int i) {
+				    int j;
+			        switch (i) {
+				        case 0 -> j = 3;
+				        default -> throw new AssertionError();
+			        }
+			    }
 			}
 			""";
-		IPackageFragment def= fSourceFolder.createPackageFragment("", false, null);
-		def.createCompilationUnit("module-info.java", str, false, null);
+		ICompilationUnit cu= pack.createCompilationUnit("Cls.java", str1, false, null);
 
-		IPackageFragment pack= fSourceFolder.createPackageFragment("test", false, null);
-		StringBuilder buf= new StringBuilder();
-		buf.append("package test;\n");
-		buf.append("public class Cls {\n");
-		buf.append("	public int foo(int k) {\n");
-		buf.append("		int i;\n");
-		buf.append("		// var comment\n");
-		buf.append("		int j = 4;\n");
-		buf.append("		// logic comment\n");
-		buf.append("		switch (j) {\n");
-		buf.append("			case 0:\n");
-		buf.append("			case 1: i = 5; break;\n");
-		buf.append("			case 2:\n");
-		buf.append("			case 3:\n");
-		buf.append("			case 4: System.out.println(\"here\"); i = 7; break;\n");
-		buf.append("			case 5:\n");
-		buf.append("			case 6: i = 14; break;\n");
-		buf.append("			// no default\n");
-		buf.append("		}\n");
-		buf.append("		return i;\n");
-		buf.append("	}\n");
-		buf.append("}\n");
-		ICompilationUnit cu= pack.createCompilationUnit("Cls.java", buf.toString(), false, null);
-
-		int index= buf.indexOf("switch");
+		int index= str1.indexOf("switch");
 		IInvocationContext ctx= getCorrectionContext(cu, index, 0);
 		ArrayList<IJavaCompletionProposal> proposals= collectAssists(ctx, false);
 		assertProposalDoesNotExist(proposals, FixMessages.SwitchExpressionsFix_convert_to_switch_expression);
-
 	}
+
 }
 

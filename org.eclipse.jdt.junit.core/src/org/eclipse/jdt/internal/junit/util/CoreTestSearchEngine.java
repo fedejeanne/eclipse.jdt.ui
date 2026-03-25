@@ -13,13 +13,20 @@
  *******************************************************************************/
 package org.eclipse.jdt.internal.junit.util;
 
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.Set;
+import java.util.jar.Attributes;
+import java.util.jar.Manifest;
+
+import org.osgi.framework.Version;
 
 import org.eclipse.jdt.junit.JUnitCore;
 
 import org.eclipse.core.runtime.CoreException;
+import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.IProgressMonitor;
+import org.eclipse.core.runtime.Status;
 
 import org.eclipse.jdt.core.Flags;
 import org.eclipse.jdt.core.IClassFile;
@@ -45,7 +52,12 @@ import org.eclipse.jdt.core.search.SearchParticipant;
 import org.eclipse.jdt.core.search.SearchPattern;
 import org.eclipse.jdt.core.search.SearchRequestor;
 
+import org.eclipse.jdt.internal.core.DefaultWorkingCopyOwner;
+import org.eclipse.jdt.internal.core.JavaProject;
+import org.eclipse.jdt.internal.core.NameLookup;
+import org.eclipse.jdt.internal.core.PackageFragmentRoot;
 import org.eclipse.jdt.internal.junit.JUnitCorePlugin;
+import org.eclipse.jdt.internal.junit.buildpath.BuildPathSupport;
 import org.eclipse.jdt.internal.junit.launcher.ITestKind;
 import org.eclipse.jdt.internal.junit.launcher.TestKindRegistry;
 
@@ -54,6 +66,10 @@ import org.eclipse.jdt.internal.junit.launcher.TestKindRegistry;
  * Custom Search engine for suite() methods
  */
 public class CoreTestSearchEngine {
+
+	private static final String JUNIT_PLATFORM_SUITE_API_PREFIX= BuildPathSupport.JUNIT_PLATFORM_SUITE_API;
+	private static final String JUNIT_PLATFORM_COMMONS_PREFIX= BuildPathSupport.JUNIT_PLATFORM_COMMONS;
+	private static final String JAR_EXTENSION= ".jar"; //$NON-NLS-1$
 
 	public static boolean isTestOrTestSuite(IType declaringType) throws CoreException {
 		ITestKind testKind= TestKindRegistry.getContainerTestKind(declaringType);
@@ -143,18 +159,68 @@ public class CoreTestSearchEngine {
 	}
 
 	public static boolean hasJUnit5TestAnnotation(IJavaProject project) {
+		return hasJUnitJupiterTestAnnotation(project, 1, // we check JUnit 5 platform bundles, they range in [1.0,2.0)
+				JUnitCore.JUNIT3_CONTAINER_PATH, JUnitCore.JUNIT4_CONTAINER_PATH, JUnitCore.JUNIT6_CONTAINER_PATH);
+	}
+
+	public static boolean hasJUnit6TestAnnotation(IJavaProject project) {
+		return hasJUnitJupiterTestAnnotation(project, 6,
+				JUnitCore.JUNIT3_CONTAINER_PATH, JUnitCore.JUNIT4_CONTAINER_PATH, JUnitCore.JUNIT5_CONTAINER_PATH);
+	}
+
+	private static boolean hasJUnitJupiterTestAnnotation(IJavaProject project, int junitMajorVersion, IPath... disallowedJunitContainerPaths) {
 		try {
 			if (project != null) {
-				IType type= project.findType(JUnitCorePlugin.JUNIT5_TESTABLE_ANNOTATION_NAME);
+				String junitBundlePrefix = JUNIT_PLATFORM_COMMONS_PREFIX;
+				IType type= findAnnotation(project, JUnitCorePlugin.JUNIT5_TESTABLE_ANNOTATION_NAME);
 				if (type == null) {
-					type= project.findType(JUnitCorePlugin.JUNIT5_SUITE_ANNOTATION_NAME);
+					junitBundlePrefix = JUNIT_PLATFORM_SUITE_API_PREFIX;
+					type= findAnnotation(project, JUnitCorePlugin.JUNIT5_SUITE_ANNOTATION_NAME);
 				}
 				if (type != null) {
+					// check if we have the right JUnit JUpiter version
+					Version version = null;
+					String filename= type.getPath().lastSegment();
+					boolean isJar = filename.endsWith(JAR_EXTENSION);
+					// Try matching the library name, this should be enough for many cases.
+					if (isJar && (filename.startsWith(junitBundlePrefix + "_") || filename.startsWith(junitBundlePrefix + "-"))) { //$NON-NLS-1$ //$NON-NLS-2$
+						String versionString = filename.substring(junitBundlePrefix.length() + 1, filename.length() - JAR_EXTENSION.length());
+						try {
+							version = Version.parseVersion(versionString);
+						} catch (IllegalArgumentException e) {
+							/*
+							 * Some JUnit distributions use different naming, ignore those. See: https://github.com/eclipse-jdt/eclipse.jdt.ui/issues/2665
+							 * We will try parsing a jar manifest below.
+							 */
+						}
+					}
+					if (isJar && version == null) {
+						try {
+							PackageFragmentRoot root= (PackageFragmentRoot) type.getAncestor(IJavaElement.PACKAGE_FRAGMENT_ROOT);
+							Manifest manifest= null;
+							if (root != null) {
+								manifest= root.getManifest();
+							}
+							if (manifest != null) {
+								Attributes attributes= manifest.getMainAttributes();
+								String versionString= attributes.getValue("Specification-Version"); //$NON-NLS-1$
+								if (versionString != null) {
+									version= Version.parseVersion(versionString);
+								}
+							}
+						} catch (Throwable e) {
+							JUnitCorePlugin.log(Status.warning("Failed to determine JUnit version", e)); //$NON-NLS-1$
+						}
+					}
+					if (version != null && version.getMajor() != junitMajorVersion) {
+						return false;
+					}
 					// @Testable/@Suite annotations are not accessible if the JUnit classpath container is set to JUnit 3 or JUnit 4
 					// (although it may resolve to a JUnit 5 JAR)
 					IPackageFragmentRoot root= (IPackageFragmentRoot) type.getAncestor(IJavaElement.PACKAGE_FRAGMENT_ROOT);
 					IClasspathEntry cpEntry= root.getRawClasspathEntry();
-					return ! JUnitCore.JUNIT3_CONTAINER_PATH.equals(cpEntry.getPath()) && ! JUnitCore.JUNIT4_CONTAINER_PATH.equals(cpEntry.getPath());
+					IPath entryPath= cpEntry.getPath();
+					return !Arrays.asList(disallowedJunitContainerPaths).contains(entryPath);
 				}
 			}
 		} catch (JavaModelException e) {
@@ -267,5 +333,23 @@ public class CoreTestSearchEngine {
 		SearchPattern suitePattern= SearchPattern.createPattern("suite() Test", IJavaSearchConstants.METHOD, IJavaSearchConstants.DECLARATIONS, matchRule); //$NON-NLS-1$
 		SearchParticipant[] participants= new SearchParticipant[] { SearchEngine.getDefaultSearchParticipant() };
 		new SearchEngine().search(suitePattern, participants, scope, requestor, pm);
+	}
+
+	private static IType findAnnotation(IJavaProject project, String fullyQualifiedName) throws JavaModelException {
+		if (project instanceof JavaProject p) {
+			NameLookup lookup= p.newNameLookup(DefaultWorkingCopyOwner.PRIMARY);
+			NameLookup.Answer answer = lookup.findType(
+					fullyQualifiedName,
+					false /* no partial matches */,
+					NameLookup.ACCEPT_ANNOTATIONS,
+					false /* no secondary types */,
+					true /* wait for indexer */,
+					true /* check restrictions */,
+					null);
+			if (answer != null) {
+				return answer.type;
+			}
+		}
+		return null;
 	}
 }

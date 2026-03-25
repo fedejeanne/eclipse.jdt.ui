@@ -21,13 +21,14 @@ import org.eclipse.swt.widgets.Group;
 import org.eclipse.jdt.internal.corext.fix.CleanUpConstants;
 
 import org.eclipse.jdt.internal.ui.fix.AbstractCleanUp;
-import org.eclipse.jdt.internal.ui.fix.AutoboxingCleanUp;
-import org.eclipse.jdt.internal.ui.fix.ComparingOnCriteriaCleanUp;
-import org.eclipse.jdt.internal.ui.fix.ConstantsForSystemPropertyCleanUp;
-import org.eclipse.jdt.internal.ui.fix.ConvertLoopCleanUp;
+import org.eclipse.jdt.internal.ui.fix.AutoboxingCleanUpCore;
+import org.eclipse.jdt.internal.ui.fix.ComparingOnCriteriaCleanUpCore;
+import org.eclipse.jdt.internal.ui.fix.ConstantsForSystemPropertyCleanUpCore;
+import org.eclipse.jdt.internal.ui.fix.ConvertLoopCleanUpCore;
 import org.eclipse.jdt.internal.ui.fix.HashCleanUp;
 import org.eclipse.jdt.internal.ui.fix.JoinCleanUp;
 import org.eclipse.jdt.internal.ui.fix.LambdaExpressionsCleanUpCore;
+import org.eclipse.jdt.internal.ui.fix.ModuleImportsCleanUpCore;
 import org.eclipse.jdt.internal.ui.fix.MultiCatchCleanUpCore;
 import org.eclipse.jdt.internal.ui.fix.ObjectsEqualsCleanUp;
 import org.eclipse.jdt.internal.ui.fix.PatternInstanceofToSwitchCleanUpCore;
@@ -35,7 +36,7 @@ import org.eclipse.jdt.internal.ui.fix.PatternMatchingForInstanceofCleanUpCore;
 import org.eclipse.jdt.internal.ui.fix.StringConcatToTextBlockCleanUpCore;
 import org.eclipse.jdt.internal.ui.fix.SwitchExpressionsCleanUpCore;
 import org.eclipse.jdt.internal.ui.fix.TryWithResourceCleanUp;
-import org.eclipse.jdt.internal.ui.fix.TypeParametersCleanUp;
+import org.eclipse.jdt.internal.ui.fix.TypeParametersCleanUpCore;
 import org.eclipse.jdt.internal.ui.fix.UnboxingCleanUp;
 import org.eclipse.jdt.internal.ui.fix.VarCleanUpCore;
 
@@ -45,28 +46,33 @@ public final class JavaFeatureTabPage extends AbstractCleanUpTabPage {
 	@Override
 	protected AbstractCleanUp[] createPreviewCleanUps(final Map<String, String> values) {
 		return new AbstractCleanUp[] {
+				new ModuleImportsCleanUpCore(values),
 				new PatternMatchingForInstanceofCleanUpCore(values),
 				new SwitchExpressionsCleanUpCore(values),
 				new VarCleanUpCore(values),
 				new LambdaExpressionsCleanUpCore(values),
-				new ComparingOnCriteriaCleanUp(values),
+				new ComparingOnCriteriaCleanUpCore(values),
 				new JoinCleanUp(values),
 				new TryWithResourceCleanUp(values),
 				new StringConcatToTextBlockCleanUpCore(values),
 				new MultiCatchCleanUpCore(values),
-				new TypeParametersCleanUp(values),
+				new TypeParametersCleanUpCore(values),
 				new HashCleanUp(values),
 				new ObjectsEqualsCleanUp(values),
-				new ConvertLoopCleanUp(values),
-				new AutoboxingCleanUp(values),
+				new ConvertLoopCleanUpCore(values),
+				new AutoboxingCleanUpCore(values),
 				new UnboxingCleanUp(values),
 				new PatternInstanceofToSwitchCleanUpCore(values),
-				new ConstantsForSystemPropertyCleanUp(values)
+				new ConstantsForSystemPropertyCleanUpCore(values)
 		};
 	}
 
 	@Override
 	protected void doCreatePreferences(final Composite composite, final int numColumns) {
+		Group java25Group= createGroup(numColumns, composite, CleanUpMessages.JavaFeatureTabPage_GroupName_Java25);
+		CheckboxPreference useImportModule= createCheckboxPref(java25Group, numColumns, CleanUpMessages.JavaFeatureTabPage_CheckboxName_UseModuleImports, CleanUpConstants.USE_MODULE_IMPORTS, CleanUpModifyDialog.FALSE_TRUE);
+		registerPreference(useImportModule);
+
 		Group java21Group= createGroup(numColumns, composite, CleanUpMessages.JavaFeatureTabPage_GroupName_Java21);
 		CheckboxPreference patternInstanceofToSwitch= createCheckboxPref(java21Group, numColumns, CleanUpMessages.JavaFeatureTabPage_CheckboxName_PatternInstanceofToSwitch, CleanUpConstants.USE_SWITCH_FOR_INSTANCEOF_PATTERN, CleanUpModifyDialog.FALSE_TRUE);
 		registerPreference(patternInstanceofToSwitch);
@@ -92,6 +98,8 @@ public final class JavaFeatureTabPage extends AbstractCleanUpTabPage {
 		CheckboxPreference useVarPref= createCheckboxPref(java10Group, numColumns, CleanUpMessages.JavaFeatureTabPage_CheckboxName_UseVar, CleanUpConstants.USE_VAR,
 				CleanUpModifyDialog.FALSE_TRUE);
 		registerPreference(useVarPref);
+		CheckboxPreference javaVersionSpecProperty= createCheckboxPref(java10Group, numColumns, CleanUpMessages.JavaFeatureTabPage_CheckboxName_ConstantsForSystemProperty_JavaVersionSpecProperty, CleanUpConstants.CONSTANTS_FOR_SYSTEM_PROPERTY_JAVA_SPECIFICATION_VERSION, CleanUpModifyDialog.FALSE_TRUE);
+		registerPreference(javaVersionSpecProperty);
 
 		Group java1d8Group= createGroup(numColumns, composite, CleanUpMessages.JavaFeatureTabPage_GroupName_Java1d8);
 
@@ -139,9 +147,7 @@ public final class JavaFeatureTabPage extends AbstractCleanUpTabPage {
 		CheckboxPreference systemconstantsFileEncoding= createCheckboxPref(java1d7Group, 1, CleanUpMessages.JavaFeatureTabPage_CheckboxName_ConstantsForSystemProperty_FileEncoding, CleanUpConstants.CONSTANTS_FOR_SYSTEM_PROPERTY_FILE_ENCODING, CleanUpModifyDialog.FALSE_TRUE);
 		CheckboxPreference systemconstantsBoxedTypeProperty= createCheckboxPref(java1d7Group, 1, CleanUpMessages.JavaFeatureTabPage_CheckboxName_ConstantsForSystemProperty_BoxedTypeProperty, CleanUpConstants.CONSTANTS_FOR_SYSTEM_PROPERTY_BOXED, CleanUpModifyDialog.FALSE_TRUE);
 		CheckboxPreference systemconstantsJavaVersionProperty= createCheckboxPref(java1d7Group, 1, CleanUpMessages.JavaFeatureTabPage_CheckboxName_ConstantsForSystemProperty_JavaVersionProperty, CleanUpConstants.CONSTANTS_FOR_SYSTEM_PROPERTY_JAVA_RUNTIME_VERSION, CleanUpModifyDialog.FALSE_TRUE);
-		intent(java1d7Group);
-		CheckboxPreference systemconstantsJavaVersionSpecProperty= createCheckboxPref(java1d7Group, 1, CleanUpMessages.JavaFeatureTabPage_CheckboxName_ConstantsForSystemProperty_JavaVersionSpecProperty, CleanUpConstants.CONSTANTS_FOR_SYSTEM_PROPERTY_JAVA_SPECIFICATION_VERSION, CleanUpModifyDialog.FALSE_TRUE);
-		registerSlavePreference(systemconstants, new CheckboxPreference[] {systemconstantsFileSeparator,systemconstantsPathSeparator,systemconstantsLineSeparator,systemconstantsFileEncoding,systemconstantsBoxedTypeProperty,systemconstantsJavaVersionProperty,systemconstantsJavaVersionSpecProperty});
+		registerSlavePreference(systemconstants, new CheckboxPreference[] {systemconstantsFileSeparator,systemconstantsPathSeparator,systemconstantsLineSeparator,systemconstantsFileEncoding,systemconstantsBoxedTypeProperty,systemconstantsJavaVersionProperty});
 
 		Group java1d5Group= createGroup(numColumns, composite, CleanUpMessages.JavaFeatureTabPage_GroupName_Java1d5);
 
