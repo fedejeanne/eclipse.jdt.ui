@@ -13,6 +13,7 @@
  *******************************************************************************/
 package org.eclipse.jdt.internal.corext.fix;
 
+import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -39,6 +40,7 @@ import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.NullProgressMonitor;
+import org.eclipse.core.runtime.OperationCanceledException;
 import org.eclipse.core.runtime.Status;
 import org.eclipse.core.runtime.preferences.DefaultScope;
 import org.eclipse.core.runtime.preferences.IEclipsePreferences;
@@ -71,7 +73,9 @@ import org.eclipse.jface.text.IRegion;
 import org.eclipse.jface.text.Position;
 import org.eclipse.jface.text.Region;
 
+import org.eclipse.ui.PlatformUI;
 import org.eclipse.ui.dialogs.PreferencesUtil;
+import org.eclipse.ui.progress.IProgressService;
 
 import org.eclipse.ltk.core.refactoring.Change;
 import org.eclipse.ltk.core.refactoring.CompositeChange;
@@ -362,7 +366,8 @@ public class CleanUpPostSaveListener implements IPostSaveListener {
 
     				CompilationUnit ast= null;
     				if (requiresAST(cleanUps)) {
-    					ast= createAst(unit, options, Progress.subMonitor(monitor, 10));
+    					ast= runUsingProgressService(m -> createAst(unit, options, m));
+    					monitor.worked(10);
     				}
 
     				CleanUpContext context;
@@ -570,22 +575,63 @@ public class CleanUpPostSaveListener implements IPostSaveListener {
 		return false;
 	}
 
-	private CompilationUnit createAst(ICompilationUnit unit, Map<String, String> cleanUpOptions, IProgressMonitor monitor) {
-		IJavaProject project= unit.getJavaProject();
-		if (compatibleOptions(project, cleanUpOptions)) {
-			CompilationUnit ast= SharedASTProviderCore.getAST(unit, SharedASTProviderCore.WAIT_NO, monitor);
-			if (ast != null)
-				return ast;
+	@FunctionalInterface
+	private interface IProgressRunnableWithResult<T> {
+		T run(IProgressMonitor monitor) throws CoreException;
+	}
+
+	private static <T> T runUsingProgressService(IProgressRunnableWithResult<T> runnable) throws CoreException {
+		final Object[] result= new Object[1];
+		IProgressService progressService= PlatformUI.getWorkbench().getProgressService();
+		try {
+			progressService.run(true, true, monitor -> {
+				try {
+					result[0]= runnable.run(monitor);
+				} catch (CoreException e) {
+					throw new InvocationTargetException(e);
+				}
+			});
+		} catch (InvocationTargetException e) {
+			Throwable cause= e.getCause();
+			if (cause instanceof CoreException coreException)
+				throw coreException;
+			if (cause instanceof RuntimeException runtimeException)
+				throw runtimeException;
+			if (cause instanceof Error error)
+				throw error;
+			throw new CoreException(new Status(IStatus.ERROR, JavaUI.ID_PLUGIN, cause.getMessage(), cause));
+		} catch (InterruptedException e) {
+			throw new OperationCanceledException();
 		}
 
-		ASTParser parser= CleanUpRefactoring.createCleanUpASTParser();
-		parser.setSource(unit);
+		@SuppressWarnings("unchecked")
+		T typedResult= (T)result[0];
+		return typedResult;
+	}
 
-		Map<String, String> compilerOptions= RefactoringASTParser.getCompilerOptions(unit.getJavaProject());
-		compilerOptions.putAll(cleanUpOptions);
-		parser.setCompilerOptions(compilerOptions);
+	private CompilationUnit createAst(ICompilationUnit unit, Map<String, String> cleanUpOptions, IProgressMonitor monitor) {
+		monitor.beginTask("", 2); //$NON-NLS-1$
+		IJavaProject project= unit.getJavaProject();
+		try {
+			if (compatibleOptions(project, cleanUpOptions)) {
+				CompilationUnit ast= SharedASTProviderCore.getAST(unit, SharedASTProviderCore.WAIT_NO, Progress.subMonitor(monitor, 1));
+				if (ast != null)
+					return ast;
+			} else {
+				monitor.worked(1);
+			}
 
-		return (CompilationUnit)parser.createAST(monitor);
+			ASTParser parser= CleanUpRefactoring.createCleanUpASTParser();
+			parser.setSource(unit);
+
+			Map<String, String> compilerOptions= RefactoringASTParser.getCompilerOptions(unit.getJavaProject());
+			compilerOptions.putAll(cleanUpOptions);
+			parser.setCompilerOptions(compilerOptions);
+
+			return (CompilationUnit)parser.createAST(Progress.subMonitor(monitor, 1));
+		} finally {
+			monitor.done();
+		}
 	}
 
 	private boolean compatibleOptions(IJavaProject project, Map<String, String> cleanUpOptions) {
