@@ -54,6 +54,7 @@ import org.eclipse.jdt.core.NamingConventions;
 import org.eclipse.jdt.core.dom.AST;
 import org.eclipse.jdt.core.dom.ASTNode;
 import org.eclipse.jdt.core.dom.ASTVisitor;
+import org.eclipse.jdt.core.dom.AbstractTypeDeclaration;
 import org.eclipse.jdt.core.dom.ArrayInitializer;
 import org.eclipse.jdt.core.dom.Assignment;
 import org.eclipse.jdt.core.dom.Block;
@@ -341,6 +342,22 @@ public class CallInliner {
 					severity,
 					RefactoringCoreMessages.CallInliner_super_into_this_expression,
 					JavaStatusContext.create(fCUnit, fInvocation)));
+			} else {
+				AbstractTypeDeclaration sourceTypeDecl= ASTNodes.getFirstAncestorOrNull(fSourceProvider.getDeclaration(), AbstractTypeDeclaration.class);
+				AbstractTypeDeclaration targetTypeDecl= ASTNodes.getFirstAncestorOrNull(fInvocation, AbstractTypeDeclaration.class);
+				if (sourceTypeDecl != null && targetTypeDecl != null) {
+					ITypeBinding sourceTypeBinding= sourceTypeDecl.resolveBinding();
+					ITypeBinding targetTypeBinding= targetTypeDecl.resolveBinding();
+					if (sourceTypeBinding != null && targetTypeBinding != null) {
+						if (!sourceTypeBinding.getQualifiedName().equals(targetTypeBinding.getQualifiedName())) {
+							result.addEntry(new RefactoringStatusEntry(
+									severity,
+									RefactoringCoreMessages.CallInliner_super_into_other_type,
+									JavaStatusContext.create(fCUnit, fInvocation)));
+						}
+					}
+				}
+
 			}
 		}
 	}
@@ -804,16 +821,37 @@ public class CallInliner {
 				allblocks += blocks[i];
 			}
 			StringBuilder builder= new StringBuilder();
-			builder.append("{"); //$NON-NLS-1$
 			String[] lines= allblocks.split("\n"); //$NON-NLS-1$
+			if (fSourceProvider.getMarkerMode() == SourceProvider.EXPRESSION_MODE) {
+				String[] lastLines= lines[lines.length - 1].split(";"); //$NON-NLS-1$
+				if (lastLines.length > 1) {
+					lines= Arrays.copyOf(lines, lines.length + 1);
+					lines[lines.length - 2]= lastLines[0] + ";"; //$NON-NLS-1$
+					lines[lines.length - 1]= lastLines[1];
+				}
+			}
+			if (lines.length != 1) {
+				builder.append("{"); //$NON-NLS-1$
+			}
 			String separator= lines.length == 1 ? "" : "\n\t"; //$NON-NLS-1$ //$NON-NLS-2$
-			for (int i= 0; i < lines.length; ++i) {
+			boolean expressionMode= fSourceProvider.getMarkerMode() == SourceProvider.EXPRESSION_MODE;
+			for (int i= 0; i < lines.length - (expressionMode ? 1 : 0); ++i) {
 				builder.append(separator);
 				builder.append(lines[i]);
 				separator= "\n\t"; //$NON-NLS-1$
 			}
+			if (expressionMode) {
+				if (lines.length == 1) {
+					builder.append(lines[0]);
+				} else {
+					builder.append(separator);
+					builder.append("return " + lines[lines.length - 1] + ";"); //$NON-NLS-1$ //$NON-NLS-2$
+				}
+			}
 			separator= lines.length == 1 ? "" : "\n"; //$NON-NLS-1$ //$NON-NLS-2$
-			builder.append(separator + "}"); //$NON-NLS-1$
+			if (lines.length != 1 || !expressionMode) {
+				builder.append(separator + "}"); //$NON-NLS-1$
+			}
 			ASTNode newNode= fRewrite.createStringPlaceholder(builder.toString(), ASTNode.BLOCK);
 			fRewrite.replace(fTargetNode, newNode, textEditGroup);
 		} else {
@@ -1002,7 +1040,7 @@ public class CallInliner {
 			return ASTNodes.isTargetAmbiguous((Expression) fTargetNode, parameterType);
 		} else {
 			ITypeBinding explicitCast= ASTNodes.getExplicitCast(returnExprs.get(0), (Expression)fTargetNode);
-			return explicitCast != null;
+			return explicitCast != null && !explicitCast.isTypeVariable();
 		}
 	}
 

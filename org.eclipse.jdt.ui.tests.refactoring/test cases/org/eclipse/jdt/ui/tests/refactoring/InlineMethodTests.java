@@ -190,6 +190,11 @@ public class InlineMethodTests extends AbstractJunit4SelectionTestCase {
 	}
 
 	@Test
+	public void testPrivateEnum() throws Exception {
+		performInvalidTest();
+	}
+
+	@Test
 	public void testCompileError1() throws Exception {
 		performInvalidTest();
 	}
@@ -211,6 +216,11 @@ public class InlineMethodTests extends AbstractJunit4SelectionTestCase {
 
 	@Test
 	public void testSuperInThis() throws Exception {
+		performInvalidTestInlineMethod();
+	}
+
+	@Test
+	public void testSuperCallInOtherType() throws Exception {
 		performInvalidTestInlineMethod();
 	}
 
@@ -818,7 +828,22 @@ public class InlineMethodTests extends AbstractJunit4SelectionTestCase {
 		performCallTest();
 	}
 
-	/* *********************** Expression Tests ******************************* */
+	@Test
+	public void testLambdaBody1() throws Exception {
+		performCallTest();
+	}
+
+	@Test
+	public void testLambdaBody2() throws Exception {
+		performCallTest();
+	}
+
+	@Test
+	public void testLambdaBody3() throws Exception {
+		performCallTest();
+	}
+
+/* *********************** Expression Tests ******************************* */
 
 	private void performExpressionTest() throws Exception {
 		performTestInlineCall(fgTestSetup.getExpressionPackage(), getName(), COMPARE_WITH_OUTPUT, "expression_out");
@@ -1153,6 +1178,11 @@ public class InlineMethodTests extends AbstractJunit4SelectionTestCase {
 
 	@Test
 	public void testNoCast() throws Exception {
+		performCastTest();
+	}
+
+	@Test
+	public void testNoCast2() throws Exception { //https://github.com/eclipse-jdt/eclipse.jdt.ui/issues/3019
 		performCastTest();
 	}
 

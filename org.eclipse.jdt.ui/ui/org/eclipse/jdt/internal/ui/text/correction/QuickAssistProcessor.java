@@ -111,6 +111,7 @@ import org.eclipse.jdt.core.dom.ParenthesizedExpression;
 import org.eclipse.jdt.core.dom.PostfixExpression;
 import org.eclipse.jdt.core.dom.PrimitiveType;
 import org.eclipse.jdt.core.dom.QualifiedName;
+import org.eclipse.jdt.core.dom.ReturnStatement;
 import org.eclipse.jdt.core.dom.SimpleName;
 import org.eclipse.jdt.core.dom.SimpleType;
 import org.eclipse.jdt.core.dom.SingleVariableDeclaration;
@@ -161,6 +162,7 @@ import org.eclipse.jdt.internal.corext.fix.ControlStatementsFix;
 import org.eclipse.jdt.internal.corext.fix.ConvertLambdaToMethodReferenceFixCore;
 import org.eclipse.jdt.internal.corext.fix.ConvertLoopFixCore;
 import org.eclipse.jdt.internal.corext.fix.DoWhileRatherThanWhileFixCore;
+import org.eclipse.jdt.internal.corext.fix.EnhancedForLoopToForEachFixCore;
 import org.eclipse.jdt.internal.corext.fix.FixMessages;
 import org.eclipse.jdt.internal.corext.fix.IProposableFix;
 import org.eclipse.jdt.internal.corext.fix.InlineMethodFixCore;
@@ -175,7 +177,9 @@ import org.eclipse.jdt.internal.corext.fix.ReplaceQualifiedTypeFixCore;
 import org.eclipse.jdt.internal.corext.fix.SplitTryResourceFixCore;
 import org.eclipse.jdt.internal.corext.fix.SplitVariableFixCore;
 import org.eclipse.jdt.internal.corext.fix.StringConcatToTextBlockFixCore;
+import org.eclipse.jdt.internal.corext.fix.SwitchCaseUnblockFixCore;
 import org.eclipse.jdt.internal.corext.fix.SwitchExpressionsFixCore;
+import org.eclipse.jdt.internal.corext.fix.SwitchFixCore;
 import org.eclipse.jdt.internal.corext.fix.TypeParametersFixCore;
 import org.eclipse.jdt.internal.corext.fix.UnnecessaryArrayCreationFixCore;
 import org.eclipse.jdt.internal.corext.fix.VariableDeclarationFixCore;
@@ -325,6 +329,7 @@ public class QuickAssistProcessor implements IQuickAssistProcessor {
 					|| getConvertMethodReferenceToLambdaProposal(context, coveringNode, null)
 					|| getConvertLambdaToMethodReferenceProposal(context, coveringNode, null)
 					|| getConvertToSwitchExpressionProposals(context, coveringNode, null)
+					|| getConvertForLoopToForEachProposal(context, coveringNode, null)
 					|| getFixParenthesesInLambdaExpression(context, coveringNode, null)
 					|| getRemoveBlockProposals(context, coveringNode, null)
 					|| getMakeVariableDeclarationFinalProposals(context, null)
@@ -343,6 +348,8 @@ public class QuickAssistProcessor implements IQuickAssistProcessor {
 					|| getConvertPatternInstanceofIfStmtToSwitchProposals(context, coveringNode, null)
 					|| getDeprecatedFieldProposal(context, coveringNode, null, null)
 					|| getConvertToRecordProposals(context, coveringNode, null)
+					|| getConvertToSwitchProposals(context, coveringNode, null)
+					|| getUnblockSwitchExpressionCaseProposals(context, coveringNode, null)
 					|| getDeprecatedProposal(context, coveringNode, null, null)
 					|| getReplaceQualifiedNameProposals(context, coveringNode, null);
 		}
@@ -411,6 +418,7 @@ public class QuickAssistProcessor implements IQuickAssistProcessor {
 				getFixParenthesesInLambdaExpression(context, coveringNode, resultingCollections);
 				if (!getConvertForLoopProposal(context, coveringNode, resultingCollections))
 					getConvertIterableLoopProposal(context, coveringNode, resultingCollections);
+				getConvertForLoopToForEachProposal(context, coveringNode, resultingCollections);
 				getUnnecessaryArrayCreationProposal(context, coveringNode, resultingCollections);
 				getConvertEnhancedForLoopProposal(context, coveringNode, resultingCollections);
 				getRemoveBlockProposals(context, coveringNode, resultingCollections);
@@ -422,6 +430,8 @@ public class QuickAssistProcessor implements IQuickAssistProcessor {
 				getAddStaticImportProposals(context, coveringNode, resultingCollections);
 				getAddStaticMemberFavoritesProposals(coveringNode, resultingCollections);
 				getConvertToSwitchExpressionProposals(context, coveringNode, resultingCollections);
+				getConvertToSwitchProposals(context, coveringNode, resultingCollections);
+				getUnblockSwitchExpressionCaseProposals(context, coveringNode, resultingCollections);
 				getDoWhileRatherThanWhileProposal(context, coveringNode, resultingCollections);
 				getStringConcatToTextBlockProposal(context, coveringNode, resultingCollections);
 				getSplitTryResourceProposal(context, coveringNode, resultingCollections);
@@ -430,6 +440,36 @@ public class QuickAssistProcessor implements IQuickAssistProcessor {
 			return resultingCollections.toArray(new IJavaCompletionProposal[resultingCollections.size()]);
 		}
 		return null;
+	}
+
+	private static boolean getConvertForLoopToForEachProposal(IInvocationContext context, ASTNode node, ArrayList<ICommandAccess> resultingCollections) {
+		EnhancedForStatement enhancedForStatement= getEnclosingHeader(node, EnhancedForStatement.class, EnhancedForStatement.PARAMETER_PROPERTY, EnhancedForStatement.EXPRESSION_PROPERTY);
+		if (enhancedForStatement == null)
+			return false;
+
+		SingleVariableDeclaration parameter= enhancedForStatement.getParameter();
+		IVariableBinding parameterBinding= parameter.resolveBinding();
+		if (parameterBinding == null) {
+			return false;
+		}
+		Expression initializer= enhancedForStatement.getExpression();
+		ITypeBinding initializerTypeBinding= initializer.resolveTypeBinding();
+		if (initializerTypeBinding == null) {
+			return false;
+		}
+
+		EnhancedForLoopToForEachFixCore fixCore = EnhancedForLoopToForEachFixCore.createReplaceEnhancedLoop(context.getASTRoot(), enhancedForStatement);
+		if (fixCore != null) {
+			if (resultingCollections == null) {
+				return true;
+			}
+			Image image= JavaPluginImages.get(JavaPluginImages.IMG_CORRECTION_CHANGE);
+			FixCorrectionProposal proposal= new FixCorrectionProposal(fixCore, null, IProposalRelevance.CONVERT_TO_FOR_EACH, image, context);
+			resultingCollections.add(proposal);
+			return true;
+		}
+
+		return false;
 	}
 
 	private static boolean getReplaceQualifiedNameProposals(IInvocationContext context, ASTNode node, ArrayList<ICommandAccess> resultingCollections) throws JavaModelException {
@@ -991,6 +1031,79 @@ public class QuickAssistProcessor implements IQuickAssistProcessor {
 		Map<String, String> options= new Hashtable<>();
 		options.put(CleanUpConstants.CONTROL_STATEMENTS_CONVERT_TO_SWITCH_EXPRESSIONS, CleanUpOptions.TRUE);
 		FixCorrectionProposal proposal= new FixCorrectionProposal(fix, new SwitchExpressionsCleanUpCore(options), IProposalRelevance.CONVERT_TO_SWITCH_EXPRESSION, image, context);
+		resultingCollections.add(proposal);
+		return true;
+	}
+
+	private static boolean getConvertToSwitchProposals(IInvocationContext context, ASTNode covering, Collection<ICommandAccess> resultingCollections) {
+		if (!(covering instanceof Block)) {
+			return false;
+		}
+		if (!(context.getCoveredNode() instanceof IfStatement)) {
+			return false;
+		}
+		Block block= (Block)covering;
+
+		IProposableFix fix= SwitchFixCore.createSwitchFix(block, context.getSelectionOffset(), context.getSelectionLength());
+		if (fix == null)
+			return false;
+
+		if (resultingCollections == null)
+			return true;
+
+		// add correction proposal
+		Image image= JavaPluginImages.get(JavaPluginImages.IMG_CORRECTION_CHANGE);
+		FixCorrectionProposal proposal= new FixCorrectionProposal(fix, null, IProposalRelevance.CONVERT_TO_SWITCH, image, context);
+		resultingCollections.add(proposal);
+		return true;
+	}
+
+	private static boolean getUnblockSwitchExpressionCaseProposals(IInvocationContext context, ASTNode covering, Collection<ICommandAccess> resultingCollections) {
+		Block block= null;
+		if (covering instanceof Block coveringBlock) {
+			block= coveringBlock;
+		} else if (covering instanceof SwitchCase switchCase) {
+			ASTNode parent= switchCase.getParent();
+			List<Statement> statements= new ArrayList<>();
+			if (parent instanceof SwitchStatement switchStatement) {
+				statements= switchStatement.statements();
+			} else if (parent instanceof SwitchExpression switchExpression) {
+				statements= switchExpression.statements();
+			}
+			int i= 0;
+			for (i= 0; i < statements.size(); ++i) {
+				if (statements.get(i) == switchCase) {
+					break;
+				}
+			}
+			if (++i < statements.size() && statements.get(i) instanceof Block b) {
+				block= b;
+			}
+		} else {
+			while (!(covering instanceof Statement) && covering != null) {
+				covering= covering.getParent();
+			}
+			if (covering != null && covering.getParent() instanceof Block parentBlock) {
+				block= parentBlock;
+			}
+		}
+		if (block == null) {
+			return false;
+		}
+		if (block.statements().size() != 1 || block.statements().get(0) instanceof ReturnStatement) {
+			return false;
+		}
+
+		IProposableFix fix= SwitchCaseUnblockFixCore.createFix(block);
+		if (fix == null)
+			return false;
+
+		if (resultingCollections == null)
+			return true;
+
+		// add correction proposal
+		Image image= JavaPluginImages.get(JavaPluginImages.IMG_CORRECTION_CHANGE);
+		FixCorrectionProposal proposal= new FixCorrectionProposal(fix, null, IProposalRelevance.CONVERT_TO_SWITCH, image, context);
 		resultingCollections.add(proposal);
 		return true;
 	}
